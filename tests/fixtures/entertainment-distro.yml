@@ -1,0 +1,288 @@
+- ref: EPS/32
+  type: distro
+  inputs:
+    - current: 32A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 9
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+- ref: EPS/32-2
+  type: distro
+  inputs:
+    - current: 32A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 6
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 3
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+- ref: EPS/63-3
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 6
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 6
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+- ref: EPS/63-4
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 18
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+- ref: EPS/63-5
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 9
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+- ref: SSB/16
+  type: distro
+  inputs:
+    - current: 32A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 2
+      current: 16A
+      phases: 3
+      type: "IEC 60309"
+- ref: SSB/32
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 2
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+- ref: SSB-1
+  type: distro
+  inputs:
+    - current: 32A
+      type: "IEC 60309"
+  outputs:
+    - count: 4
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: SSB-2
+  type: distro
+  inputs:
+    - current: 32A
+      type: "IEC 60309"
+  outputs:
+    - count: 3
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: TOB-16
+  type: distro
+  inputs:
+    - current: 16A
+      type: "IEC 60309"
+  outputs:
+    - count: 14
+      current: 13A
+      type: "BS 1363"
+      rcd: 30mA
+- ref: TOB-32
+  type: distro
+  inputs:
+    - current: 32A
+      type: "IEC 60309"
+  outputs:
+    - count: 14
+      current: 13A
+      type: "BS 1363"
+      rcd: 30mA
+- ref: SOB
+  type: distro
+  inputs:
+    - current: 32A
+      type: "IEC 60309"
+  outputs:
+    - count: 8
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 32A
+      type: "IEC 60309"
+- ref: SBR
+  type: distro
+  inputs:
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 4
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+      rcd: adjustable
+- ref: GBR
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 12
+      current: 16A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 6
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 2
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 1
+      current: 63A
+      type: "IEC 60309"
+      phases: 3
+- ref: HTS
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 3
+      current: 32A
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 3
+      current: 32A
+      type: "IEC 60309"
+      phases: 3
+      rcd: 30mA
+    - count: 1
+      current: 63A
+      type: "IEC 60309"
+      phases: 3
+- ref: HTSB-4
+  type: distro
+  inputs:
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 6
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: HTSB-5
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 2
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+    - count: 4
+      current: 16A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: HTSB-6
+  type: distro
+  inputs:
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 6
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: HTSB-7
+  type: distro
+  inputs:
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 2
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+      rcd: adjustable
+    - count: 4
+      current: 32A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA
+- ref: HTSB-12
+  type: distro
+  inputs:
+    - current: 63A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 12
+      current: 16A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 30mA

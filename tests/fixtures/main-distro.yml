@@ -1,0 +1,12 @@
+- ref: SPEC-7
+  type: distro
+  inputs:
+    - current: 400A
+      phases: 3
+      type: Powerlock
+  outputs:
+    - count: 10
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 100-1000mA

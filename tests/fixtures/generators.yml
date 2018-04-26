@@ -1,0 +1,9 @@
+- ref: 135kVA
+  name: 135kVA Generator
+  type: generator
+  rating: 135kVA
+  outputs:
+    - current: 400A
+      phases: 3
+      type: Powerlock
+      rcd: 1A
