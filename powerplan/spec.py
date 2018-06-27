@@ -6,8 +6,6 @@ from os import walk
 
 REQUIRED = ['type', 'ref']
 
-ureg = pint.UnitRegistry()
-
 
 class EquipmentSpec(object):
     """ Stores specification data about power equipment. """
@@ -16,6 +14,8 @@ class EquipmentSpec(object):
         self.log = logging.getLogger(__name__)
         self.generator = {}
         self.distro = {}
+        self.cables = {}
+        self.ureg = pint.UnitRegistry()
         self.load(metadata_path)
 
     def load(self, metadata_path):
@@ -40,9 +40,15 @@ class EquipmentSpec(object):
 
         self.parse_item(item)
         if item['type'] == 'generator':
+            for field in ('voltage', 'power', 'transient_reactance'):
+                if field in item:
+                    item[field] = self.ureg(item[field])
             self.generator[item['ref']] = item
         elif item['type'] == 'distro':
             self.distro[item['ref']] = item
+        elif item['type'] == 'cable':
+            item['rating'] = self.convert_current(item['rating'])
+            self.cables[(item['connector'], item['rating'], item['phases'])] = item
 
     def parse_item(self, item):
         for key in ['inputs', 'outputs']:
@@ -62,4 +68,39 @@ class EquipmentSpec(object):
             item[key] = res
 
     def convert_current(self, val):
-        return ureg(val).to(ureg.A).magnitude
+        return self.ureg(val).to(self.ureg.A).magnitude
+
+    def select_cable(self, connector, rating, phases, length):
+        """ Select appropriate cables for a run.
+
+            Returns a list of cable lengths and the cross-sectional area of the cable.
+        """
+        key = (connector, rating, phases)
+        if key not in self.cables:
+            raise ValueError("No cable data available for %s, %sA, %s phases" % key)
+
+        if length is None:
+            return (None, self.cables[key]['csa'])
+
+        # Calculate the shortest combination of cable lengths.
+        # The n-sum problem!
+
+        lengths = sorted(self.cables[key]['lengths'])
+        selected_lengths = []
+
+        while sum(selected_lengths) <= length:
+            # See if the length is satisfied either by a single cable
+            # or a pair of adjacent lengths.
+            for i in range(len(lengths)):
+                if lengths[i] + sum(selected_lengths) >= length:
+                    selected_lengths += [lengths[i]]
+                    break
+
+                if i > 0 and lengths[i] + lengths[i - 1] >= length:
+                    selected_lengths += [lengths[i], lengths[i - 1]]
+                    break
+            else:
+                # It isn't, so add the longest cable to the list and repeat.
+                selected_lengths += [lengths[-1]]
+
+        return (selected_lengths, self.cables[key]['csa'])

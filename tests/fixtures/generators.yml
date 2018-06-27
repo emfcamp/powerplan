@@ -1,7 +1,9 @@
 - ref: 135kVA
   name: 135kVA Generator
   type: generator
-  rating: 135kVA
+  power: 135kVA
+  voltage: 400V
+  transient_reactance: 20%
   outputs:
     - current: 400A
       phases: 3

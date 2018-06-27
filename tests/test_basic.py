@@ -1,8 +1,5 @@
-from powerplan import Plan, EquipmentSpec
+from powerplan import Plan
 from powerplan.data import Generator, Distro
-import os.path
-
-thispath = os.path.realpath(os.path.dirname(__file__))
 
 
 def test_create_graph():
@@ -25,13 +22,9 @@ def test_failed_validation():
     assert len(plan.validate()) == 1
 
 
-def test_spec():
-    spec = EquipmentSpec(os.path.join(thispath, './fixtures'))
-
+def test_spec(spec, plan):
     assert len(spec.generator) == 1
     assert len(spec.distro) == 21
-
-    plan = Plan(spec)
 
     gen = Generator(name="A", type="135kVA")
     dist = Distro(name="A1", type="SPEC-7")
@@ -49,10 +42,7 @@ def test_spec():
     assert len(plan.validate()) == 2
 
 
-def test_port_assignment():
-    spec = EquipmentSpec(os.path.join(thispath, './fixtures'))
-    plan = Plan(spec)
-
+def test_port_assignment(plan):
     gen = Generator(name="A", type="135kVA")
     a1 = Distro(name="A1", type="SPEC-7")
     plan.add_connection(gen, a1, 400, 3)
@@ -76,3 +66,52 @@ def test_port_assignment():
     plan.assign_cables()
 
     assert plan.graph[a1][a2]['csa'] == 16
+    sources = list(a4.sources())
+    assert len(sources) == 1
+    assert sources[0] == gen
+
+
+def test_subgraph(plan):
+    a = Generator(name="A", type="135kVA")
+    a1 = Distro(name="A1", type="SPEC-7")
+    plan.add_connection(a, a1, 400, 3, length=10)
+
+    b = Generator(name="B", type="135kVA")
+    b1 = Distro(name="B1", type="SPEC-7")
+    plan.add_connection(b, b1, 400, 3, length=10)
+    plan.generate()
+
+    grids = list(plan.grids())
+
+    assert len(grids) == 2
+
+    for grid in grids:
+        assert grid.parent == plan
+
+
+def test_select_cable_lengths(spec):
+    assert spec.select_cable('IEC 60309', 63, 3, 34)[0] == [25, 10]
+    assert spec.select_cable('IEC 60309', 63, 3, 41)[0] == [50]
+    assert spec.select_cable('IEC 60309', 63, 3, 62)[0] == [50, 25]
+
+
+def test_fault_current(plan):
+    gen = Generator(name="A", type="135kVA")
+    a1 = Distro(name="A1", type="SPEC-7")
+    plan.add_connection(gen, a1, 400, 3, length=10)
+
+    a2 = Distro(name="A2", type="EPS/63-4")
+    plan.add_connection(a1, a2, 63, 3, length=52)
+
+    a3 = Distro(name="A3", type="EPS/63-3")
+    plan.add_connection(a1, a3, 63, 3, length=54)
+
+    a4 = Distro(name="A4", type="TOB-32")
+    plan.add_connection(a3, a4, 32, 1, length=25)
+
+    assert len(plan.validate()) == 0
+    plan.generate()
+
+    a4.i_pf()
+
+
