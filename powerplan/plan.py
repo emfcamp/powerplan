@@ -1,4 +1,5 @@
 import networkx as nx
+from . import ureg
 from .cables import CableConfiguration, get_cable_ratings
 from .data import Generator, Distro, VirtualNode
 from .validator import validate_basic, validate_spec
@@ -43,6 +44,9 @@ class Plan(object):
         return errors
 
     def nodes(self, include_virtual=False, data=False):
+        """ Enumerate nodes in the plan.
+            Excludes virtual nodes (loads) unless `include_virtual` is True.
+        """
         for node, node_data in self.graph.nodes(True):
             if not include_virtual and isinstance(node, VirtualNode):
                 continue
@@ -57,7 +61,7 @@ class Plan(object):
             if not include_virtual and (isinstance(u, VirtualNode) or isinstance(v, VirtualNode)):
                 continue
 
-            if edge_data:
+            if data:
                 yield (u, v, edge_data)
             else:
                 yield (u, v)
@@ -162,7 +166,7 @@ class Plan(object):
                 # TODO: use the complex impedance and calculate with expected PF
                 drop = drop[2]
 
-            drop *= self.spec.ureg('mohm/m')
+            drop *= ureg('mohm/m')
 
             self.graph[a][b]['impedance'] = drop
 
@@ -172,11 +176,11 @@ class Plan(object):
             if not data.get('cable_lengths') or not data.get('impedance'):
                 continue
 
-            length = sum(data['cable_lengths']) * self.spec.ureg.m
+            length = sum(data['cable_lengths']) * ureg.m
             source = list(b.sources())[0]
-            # Per-phase current is the load in W divided by the source L-L voltage
+            # Per-phase current is the load in watts divided by the source L-L voltage
             current = b.load() / source.voltage
-            self.graph[a][b]['voltage_drop'] = (current * data['impedance'] * length).to(self.spec.ureg.V)
+            self.graph[a][b]['voltage_drop'] = (current * data['impedance'] * length).to(ureg.V)
 
     def grids(self):
         for c in nx.weakly_connected_components(self.graph):

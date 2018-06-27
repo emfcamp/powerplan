@@ -1,8 +1,8 @@
 import logging
 import yaml
 import os.path
-import pint
 from os import walk
+from . import ureg
 
 REQUIRED = ['type', 'ref']
 
@@ -15,7 +15,6 @@ class EquipmentSpec(object):
         self.generator = {}
         self.distro = {}
         self.cables = {}
-        self.ureg = pint.UnitRegistry()
         self.load(metadata_path)
 
     def load(self, metadata_path):
@@ -42,7 +41,7 @@ class EquipmentSpec(object):
         if item['type'] == 'generator':
             for field in ('voltage', 'power', 'transient_reactance'):
                 if field in item:
-                    item[field] = self.ureg(item[field])
+                    item[field] = ureg(item[field])
             self.generator[item['ref']] = item
         elif item['type'] == 'distro':
             self.distro[item['ref']] = item
@@ -68,7 +67,7 @@ class EquipmentSpec(object):
             item[key] = res
 
     def convert_current(self, val):
-        return self.ureg(val).to(self.ureg.A).magnitude
+        return ureg(val).to(ureg.A).magnitude
 
     def select_cable(self, connector, rating, phases, length):
         """ Select appropriate cables for a run.

@@ -1,3 +1,4 @@
+from . import ureg
 from math import sqrt
 
 
@@ -9,10 +10,6 @@ class PowerNode(object):
         self.plan = None
         self.inputs_allocated = set()
         self.outputs_allocated = set()
-
-    @property
-    def _ureg(self):
-        return self.plan.spec.ureg
 
     def __repr__(self):
         if self.name:
@@ -37,16 +34,16 @@ class PowerNode(object):
     def load(self):
         s = sum(node.load() for node, _ in self.outputs(True))
         if s == 0:
-            s *= self._ureg.W
+            s *= ureg.W
         return s
 
 
 class PowerSource(PowerNode):
     def r1(self):
-        return 0 * self._ureg.ohm
+        return 0 * ureg.ohm
 
     def v_drop(self):
-        return 0 * self._ureg.V
+        return 0 * ureg.V
 
 
 class VirtualNode(PowerNode):
@@ -89,7 +86,7 @@ class Generator(PowerSource):
         transient_reactance = spec.get('transient_reactance')
 
         z = (voltage ** 2 * transient_reactance) / (power * 100)
-        return (z).to(self._ureg.ohm)
+        return (z).to(ureg.ohm)
 
 
 class Distro(PowerNode):
@@ -108,7 +105,7 @@ class Distro(PowerNode):
         # Voltage drop is quoted as r1 + r2 in mV/A/m (milliohms/m) although unit conversion
         # is handled by pint. We need to divide by2 to get single-leg ohms/m, then multiply
         # by cable length
-        length = sum(attrs['cable_lengths']) * self._ureg.m
+        length = sum(attrs['cable_lengths']) * ureg.m
         Z = length * (attrs['impedance'] / 2) + source.r1()
         return Z
 
@@ -134,7 +131,7 @@ class Distro(PowerNode):
         " Prospective fault current for a L-N or L-E fault (amps). "
         source = list(self.sources())[0]
         I = source.voltage / (self.z_s() * sqrt(3))
-        return I.to(self.plan.spec.ureg.A)
+        return I.to(ureg.A)
 
     def v_drop(self):
         " Voltage drop L-N (volts)"
@@ -167,7 +164,7 @@ class Load(VirtualNode):
         self.load_value = load
 
     def load(self):
-        l = self._ureg.Quantity(str(self.load_value))
+        l = ureg.Quantity(str(self.load_value))
         if l.dimensionless:
-            l *= self._ureg.W
+            l *= ureg.W
         return l
