@@ -10,10 +10,5 @@ setuptools.setup(name='powerplan',
                  packages=['powerplan', 'powerplan.command'],
                  install_requires=['networkx==2.1', 'pydotplus', 'click', 'pint'],
                  python_requires=">=3.4",
-                 license='MIT License',
-                 entry_points={
-                    'console_scripts': {
-                        'powerplan=powerplan.command.powerplan:run'
-                    }
-                 },
+                 license='GPL v3',
                  zip_safe=False)
