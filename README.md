@@ -1,6 +1,3 @@
+# Powerplan
 
-
-
-## Assumptions
-
-r1 == r2
+A library for computer-aided design of temporary power systems.
