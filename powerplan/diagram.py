@@ -2,6 +2,7 @@ from datetime import date
 import pydotplus as pydot
 from collections import defaultdict, OrderedDict
 
+from . import ureg
 from .data import Distro, Generator
 
 COLOUR_THREEPHASE = 'firebrick3'
@@ -43,21 +44,35 @@ def _node_additional(node):
         z_s = node.z_s()
         if z_s:
             additional['Z<sub>s</sub>'] = '{:.4~H}'.format(z_s)
-            additional['I<sub>pf (L-N)</sub>'] = '{:.5~H}'.format(node.i_pf())
-
-        load = node.load()
-        if load.magnitude > 0:
-            additional['Load'] = '{:~H}'.format(load)
+            i_pf = node.i_pf()
+            i_n = list(node.inputs())[0][1]['current'] * ureg('A')
+            trip_ratio = (i_pf / i_n).magnitude
+            trip_text = "({:.1f}I<sub>n</sub>)".format(trip_ratio)
+            if trip_ratio < 5:
+                trip_text = '<font color="red">{}</font>'.format(trip_text)
+            additional['I<sub>pf (L-N)</sub>'] = '{:.5~H} {}'.format(
+                i_pf, trip_text)
 
         v_drop = node.v_drop()
         if v_drop:
-            additional['V<sub>drop</sub>'] = '{:.3~H} ({:.2}%)'.format(v_drop, node.v_drop_ratio() * 100)
+            drop_ratio = node.v_drop_ratio() * 100
+            drop_text = '({:.1f}%)'.format(drop_ratio)
+            # Drop ratio limits from BS7671 Appendix 12
+            if drop_ratio > 8:
+                drop_text = '<font color="red">{}</font>'.format(drop_text)
+            elif drop_ratio > 6:
+                drop_text = '<font color="orange">{}</font>'.format(drop_text)
+            additional['V<sub>drop</sub>'] = '{:.3~H} {}'.format(v_drop, drop_text)
 
     elif type(node) == Generator:
         additional['P<sub>o</sub>'] = '{:~H}'.format(node.power)
         additional['U'] = '{:~H}'.format(node.voltage)
         additional['Z<sub>e</sub>'] = '{:.4~H} ({}%)'.format(
             node.z_e(), node.get_spec().get('transient_reactance'))
+
+    load = node.load()
+    if load.magnitude > 0:
+        additional['Load'] = '{:~H}'.format(load.to(ureg('kW')))
 
     return additional
 
