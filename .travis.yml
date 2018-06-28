@@ -7,6 +7,8 @@ addons:
     packages:
       - graphviz
 install:
-  - pip install -e .
+  - pip install -r ./dev-requirements.txt
 script:
-  - pytest
+  - make test
+after_success:
+  - coveralls

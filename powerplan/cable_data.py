@@ -4,8 +4,8 @@ cable_data = {}
 # BS7671:2008 table 4F1A
 # 60C thermosetting insulated flexible cables with sheath, non-armoured
 cable_data['4F1A'] = {}
+#    CSA, Two conductors, 3-5 conductors, separate conductors
 cable_data['4F1A']['ratings'] = [
-# CSA, Two conductors, 3-5 conductors, separate conductors
     (4, 30, 26, None),
     (6, 39, 34, None),
     (10, 51, 47, None),
@@ -25,7 +25,6 @@ cable_data['4F1A']['ratings'] = [
     (630, None, None, 861)]
 
 cable_data['4F1A']['voltage_drop'] = [
-# CSA, 
     (4, 12, 12, 10, None, None),
     (6, 7.8, 7.8, 6.7, None, None),
     (10, 4.6, 4.6, 4.0, None, None),
@@ -47,8 +46,8 @@ cable_data['4F1A']['voltage_drop'] = [
 
 # Eland Cables H07RN-F Cable Datasheet
 cable_data['Eland'] = {}
-cable_data['Eland']['ratings'] = [
 # CSA, Two conductors, 3-5 conductors, separate conductors
+cable_data['Eland']['ratings'] = [
     (4, 41, 36, None),
     (6, 53, 47, None),
     (10, 73, 64, None),
