@@ -1,4 +1,3 @@
-import networkx as nx
 from .data import Distro, PowerSource
 
 
@@ -12,6 +11,17 @@ class ValidationError(object):
 
     def __repr__(self):
         return str(self)
+
+
+def validate_node_uniqueness(plan):
+    nodes = sorted(plan.nodes(), key=lambda node: node.name)
+    duplicates = set()
+    for i in range(len(nodes) - 1):
+        if nodes[i].name == nodes[i+1].name:
+            duplicates.add(nodes[i])
+            duplicates.add(nodes[i+1])
+
+    return [ValidationError(node, "Duplicate node name") for node in duplicates]
 
 
 def validate_basic(plan):
@@ -30,11 +40,7 @@ def validate_basic(plan):
             if len(in_edges) == 0:
                 errors.append(ValidationError(node, "Distro has no incoming connections"))
 
-    #for c in nx.weakly_connected_components(plan.graph):
-    #    sources = [node for node in c if isinstance(node, PowerSource)]
-    #    if len(sources) == 0:
-    #        errors.append(ValidationError(c[0], "Unconnected grid: {}".format(", ".join(str(n) for n in c))))
-
+    errors += validate_node_uniqueness(plan)
     return errors
 
 

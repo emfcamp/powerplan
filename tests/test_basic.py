@@ -115,3 +115,12 @@ def test_fault_current(plan):
     a4.i_pf()
 
 
+def test_duplicate_node_name(plan):
+    gen = Generator(name="A", type="135kVA")
+    a1 = Distro(name="A1", type="SPEC-7")
+    plan.add_connection(gen, a1, 400, 3)
+
+    a2 = Distro(name="A1", type="EPS/63-4")
+    plan.add_connection(a1, a2, 63, 3)
+
+    assert len(plan.validate()) == 2
