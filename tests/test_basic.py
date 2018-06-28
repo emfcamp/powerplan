@@ -1,7 +1,8 @@
-from powerplan.data import Generator, Distro
+from powerplan import Plan, Generator, Distro
 
 
-def test_create_graph(plan):
+def test_create_graph():
+    plan = Plan()
     gen = Generator(name="A")
     dist = Distro(name="A1")
     plan.add_node(gen)
@@ -14,7 +15,8 @@ def test_create_graph(plan):
     assert plan.num_distros() == 1
 
 
-def test_failed_validation(plan):
+def test_failed_validation():
+    plan = Plan()
     dist = Distro(name="A1")
     plan.add_node(dist)
 
