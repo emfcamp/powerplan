@@ -183,12 +183,15 @@ class Plan(object):
             self.graph[a][b]['voltage_drop'] = (current * data['impedance'] * length).to(ureg.V)
 
     def grids(self):
+        grids = []
         for c in nx.weakly_connected_components(self.graph):
             generators = [node for node in c if type(node) == Generator]
             if len(generators) == 0:
                 continue
             name = generators[0].name
-            yield Plan(parent=self, name=name, graph=self.graph.subgraph(c))
+            grids.append(Plan(parent=self, name=name, graph=self.graph.subgraph(c)))
+
+        return sorted(grids, key=lambda plan: plan.name)
 
     def __repr__(self):
         return "<Plan '{}': {} generators, {} distros, {} connections>".format(
