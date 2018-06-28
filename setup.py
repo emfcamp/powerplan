@@ -11,7 +11,9 @@ setuptools.setup(name='powerplan',
                  install_requires=[
                      'networkx==2.1',
                      'pydotplus==2.0.2',
-                     'pint==0.8.1'],
+                     'pint==0.8.1',
+                     'pyYAML==4.1'
+                 ],
                  python_requires=">=3.4",
                  license='GPL v3',
                  zip_safe=False)
