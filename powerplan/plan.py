@@ -166,6 +166,9 @@ class Plan(object):
                 # TODO: use the complex impedance and calculate with expected PF
                 drop = drop[2]
 
+            if drop is None:
+                continue
+
             drop *= ureg('mohm/m')
 
             self.graph[a][b]['impedance'] = drop

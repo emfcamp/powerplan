@@ -99,7 +99,7 @@ class Distro(PowerNode):
 
         source, attrs = list(inputs)[0]
 
-        if not attrs.get('csa') or not attrs.get('cable_lengths'):
+        if not attrs.get('impedance') or not attrs.get('cable_lengths'):
             return None
 
         # Voltage drop is quoted as r1 + r2 in mV/A/m (milliohms/m) although unit conversion
