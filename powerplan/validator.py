@@ -17,9 +17,9 @@ def validate_node_uniqueness(plan):
     nodes = sorted(plan.nodes(), key=lambda node: node.name)
     duplicates = set()
     for i in range(len(nodes) - 1):
-        if nodes[i].name == nodes[i+1].name:
+        if nodes[i].name == nodes[i + 1].name:
             duplicates.add(nodes[i])
-            duplicates.add(nodes[i+1])
+            duplicates.add(nodes[i + 1])
 
     return [ValidationError(node, "Duplicate node name") for node in duplicates]
 
