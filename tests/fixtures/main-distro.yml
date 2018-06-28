@@ -10,3 +10,20 @@
       phases: 3
       type: "IEC 60309"
       rcd: 100-1000mA
+- ref: SPEC-4
+  type: distro
+  inputs:
+    - current: 400A
+      phases: 3
+      type: Powerlock
+  outputs:
+    - count: 4
+      current: 63A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 100-1000mA
+    - count: 2
+      current: 125A
+      phases: 3
+      type: "IEC 60309"
+      rcd: 100-1000mA

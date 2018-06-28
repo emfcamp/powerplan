@@ -1,7 +1,7 @@
 import networkx as nx
 from . import ureg
 from .cables import CableConfiguration, get_cable_ratings
-from .data import Generator, Distro, VirtualNode
+from .data import Generator, Distro, VirtualNode, AMF, LogicalSource, LogicalSink, PowerSource
 from .validator import validate_basic, validate_spec
 
 
@@ -181,22 +181,54 @@ class Plan(object):
                 continue
 
             length = sum(data['cable_lengths']) * ureg.m
-            source = list(b.sources())[0]
             # Per-phase current is the load in watts divided by the source L-L voltage
-            current = b.load() / source.voltage
+            current = b.load() / b.voltage
             self.graph[a][b]['voltage_drop'] = (current * data['impedance'] * length).to(ureg.V)
 
-    def grids(self):
+    def grids(self, split_amf=True):
+        graph = self.graph
+        if split_amf:
+            graph = graph.copy()
+            # Iterate over the original graph and modify the copy
+            for node in self.graph.nodes():
+                if type(node) == AMF:
+                    # Insert LogicalSource and LogicalSink nodes to split grids at the AMF.
+                    self.split_graph(graph, node)
+
         grids = []
-        for c in nx.weakly_connected_components(self.graph):
-            generators = [node for node in c if type(node) == Generator]
-            if len(generators) == 0:
+        for c in nx.weakly_connected_components(graph):
+            sources = [node for node in c if isinstance(node, PowerSource)]
+            if len(sources) == 0:
                 continue
-            name = generators[0].name
-            grids.append(Plan(parent=self, name=name, graph=self.graph.subgraph(c)))
+            name_source = sources[0]
+            if type(name_source) == LogicalSource:
+                name = "Logical {}".format(name_source.name)
+            else:
+                name = name_source.name
+            grids.append(Plan(parent=self, name=name, graph=graph.subgraph(c)))
 
         return sorted(grids, key=lambda plan: plan.name)
 
     def __repr__(self):
         return "<Plan '{}': {} generators, {} distros, {} connections>".format(
             self.name, self.num_generators(), self.num_distros(), len(self.graph.edges()))
+
+    def split_graph(self, graph, node):
+        for upstream, data in node.inputs():
+            source = upstream.source()
+            logical_source = LogicalSource("Grid {}".format(source.name),
+                                           node.voltage, node.v_drop(upstream), node.z_s(upstream),
+                                           data['current'], data['phases'])
+            logical_sink = LogicalSink("{} {}".format(node.name, source.name), node.load(),
+                                       data['current'], data['phases'])
+
+            logical_source.plan = self
+            logical_sink.plan = self
+
+            graph.remove_edge(upstream, node)
+            graph.add_edge(upstream, logical_sink, **data)
+
+            data['length'] = 0
+            data['cable_lengths'] = [0]
+            data['voltage_drop'] = 0
+            graph.add_edge(logical_source, node, **data, logical=True)

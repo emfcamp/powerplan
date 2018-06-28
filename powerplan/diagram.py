@@ -3,11 +3,15 @@ import pydotplus as pydot
 from collections import defaultdict, OrderedDict
 
 from . import ureg
-from .data import Distro, Generator
+from .data import Distro, LogicalSource, Generator, AMF
 
 COLOUR_THREEPHASE = 'firebrick3'
 COLOUR_SINGLEPHASE = 'blue4'
 COLOUR_HEADER = 'lightcyan1'
+
+
+def _sanitise_name(name):
+    return name.lower().replace(' ', '_')
 
 
 def _render_port(current, phases, count=1):
@@ -40,13 +44,12 @@ def _node_additional(node):
     " Additional detail for a node "
     additional = OrderedDict()
 
-    if type(node) == Distro:
+    if type(node) in (Distro, LogicalSource, AMF):
         z_s = node.z_s()
         if z_s:
             additional['Z<sub>s</sub>'] = '{:.4~H}'.format(z_s)
             i_pf = node.i_pf()
-            i_n = list(node.inputs())[0][1]['current'] * ureg('A')
-            trip_ratio = (i_pf / i_n).magnitude
+            trip_ratio = (i_pf / node.i_n()).magnitude
             trip_text = "({:.1f}I<sub>n</sub>)".format(trip_ratio)
             if trip_ratio < 5:
                 trip_text = '<font color="red">{}</font>'.format(trip_text)
@@ -127,7 +130,7 @@ def _title_label(name):
 
 
 def _get_subgraph(plan):
-    dot = pydot.Cluster(plan.name, label="Grid %s" % plan.name)
+    dot = pydot.Cluster(_sanitise_name(plan.name), label="Grid %s" % plan.name)
     for n, nodedata in plan.nodes(data=True):
         if n.name is None:
             raise Exception("Nodes must all be named! {} is missing a name".format(n))

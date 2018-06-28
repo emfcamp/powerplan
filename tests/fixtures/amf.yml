@@ -1,0 +1,25 @@
+- ref: 125AMF-EVENT
+  type: amf
+  inputs:
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+    - current: 125A
+      phases: 3
+      type: "IEC 60309"
+  outputs:
+    - count: 1
+      current: 125A
+      type: "IEC 60309"
+      phases: 3
+    - count: 1
+      current: 63A
+      type: "IEC 60309"
+      phases: 3
+    - count: 1
+      current: 32A
+      type: "IEC 60309"
+      phases: 3
+    - count: 1
+      current: 16A
+      type: "IEC 60309"

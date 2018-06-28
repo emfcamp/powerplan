@@ -25,7 +25,7 @@ def test_failed_validation():
 
 def test_spec(spec, plan):
     assert len(spec.generator) == 1
-    assert len(spec.distro) == 21
+    assert len(spec.distro) == 23
 
     gen = Generator(name="A", type="135kVA")
     dist = Distro(name="A1", type="SPEC-7")
@@ -67,9 +67,7 @@ def test_port_assignment(plan):
     plan.assign_cables()
 
     assert plan.graph[a1][a2]['csa'] == 16
-    sources = list(a4.sources())
-    assert len(sources) == 1
-    assert sources[0] == gen
+    assert a4.source() == gen
 
 
 def test_subgraph(plan):

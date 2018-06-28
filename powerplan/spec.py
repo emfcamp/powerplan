@@ -43,7 +43,7 @@ class EquipmentSpec(object):
                 if field in item:
                     item[field] = ureg(item[field])
             self.generator[item['ref']] = item
-        elif item['type'] == 'distro':
+        elif item['type'] in ('distro', 'amf'):
             self.distro[item['ref']] = item
         elif item['type'] == 'cable':
             item['rating'] = self.convert_current(item['rating'])
