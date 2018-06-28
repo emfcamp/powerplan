@@ -118,7 +118,8 @@ class Plan(object):
             if a_spec is None:
                 continue
 
-            for b, data in a.outputs():
+            # Sort outputs alphabetically by name so assignments are stable
+            for b, data in sorted(a.outputs(), key=lambda d: d[0].name):
                 if 'in_port' in data:
                     continue
 
