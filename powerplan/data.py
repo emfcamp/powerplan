@@ -12,8 +12,8 @@ class PowerNode(object):
         self.type = type
         self.id = id
         self.plan = None
-        self.inputs_allocated: Set[int] = set()
-        self.outputs_allocated: Set[int] = set()
+        self.inputs_allocated = set()
+        self.outputs_allocated = set()
 
     def __repr__(self) -> str:
         if self.name:
