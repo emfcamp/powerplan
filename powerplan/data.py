@@ -1,17 +1,21 @@
-from . import ureg
+from typing import Optional, Any, Iterable, Tuple, Set  # noqa
 from math import sqrt
+from . import ureg
 
 
 class PowerNode(object):
-    def __init__(self, name=None, type=None, id=None):
+    def __init__(self,
+                 name: Optional[str]=None,
+                 type: Optional[str]=None,
+                 id: Optional[Any]=None) -> None:
         self.name = name
         self.type = type
         self.id = id
-        self.plan = None
-        self.inputs_allocated = set()
-        self.outputs_allocated = set()
+        self.plan: Optional['Plan'] = None
+        self.inputs_allocated: Set[int] = set()
+        self.outputs_allocated: Set[int] = set()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.name:
             return "%s(name=%s)" % (self.__class__.__name__, self.name)
         elif self.id:
@@ -19,25 +23,29 @@ class PowerNode(object):
         else:
             return "%s(%s)" % (self.__class__.__name__, id(self))
 
-    def inputs(self, include_virtual=False):
+    def inputs(self, include_virtual: bool=False) -> Iterable[Tuple['PowerNode', Any]]:
+        if self.plan is None:
+            raise Exception("Node is not associated with a plan")
         for node, _, data in self.plan.graph.in_edges([self], data=True):
             if not include_virtual and isinstance(node, VirtualNode):
                 continue
             yield (node, data)
 
-    def outputs(self, include_virtual=False):
+    def outputs(self, include_virtual: bool=False) -> Iterable[Tuple['PowerNode', Any]]:
+        if self.plan is None:
+            raise Exception("Node is not associated with a plan")
         for _, node, data in self.plan.graph.out_edges([self], data=True):
             if not include_virtual and isinstance(node, VirtualNode):
                 continue
             yield (node, data)
 
-    def load(self):
+    def load(self) -> float:
         s = sum(node.load() for node, _ in self.outputs(True))
         if s == 0:
             s *= ureg.W
         return s
 
-    def source(self, ipt=None):
+    def source(self, ipt: Optional['PowerNode']=None) -> 'PowerNode':
         """ Return the power source for this node.
 
             If the node has multiple inputs you must specify which upstream node to
@@ -51,7 +59,7 @@ class PowerNode(object):
         else:
             return self.source_for_input(ipt)
 
-    def source_for_input(self, ipt):
+    def source_for_input(self, ipt: 'PowerNode') -> 'PowerNode':
         if isinstance(ipt, PowerSource):
             return ipt
         else:
@@ -66,7 +74,7 @@ class PowerNode(object):
         return list(voltages)[0] * ureg.V
 
     @property
-    def voltage_ln(self):
+    def voltage_ln(self) -> int:
         " Nominal Voltage L-N "
         return self.voltage / sqrt(3)
 

@@ -1,5 +1,5 @@
 from datetime import date
-import pydotplus as pydot
+import pydotplus as pydot  # type: ignore
 from collections import defaultdict, OrderedDict
 
 from . import ureg

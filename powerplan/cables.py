@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional, Dict
 from .cable_data import cable_data
 
 
@@ -8,7 +9,9 @@ class CableConfiguration(Enum):
     TWO_SINGLE = 3  # two single-core cables, laid touching
 
 
-def select_cable_size(current, methodology, configuration):
+def select_cable_size(current: int,
+                      methodology: str,
+                      configuration: CableConfiguration) -> Optional[int]:
     """ Return the cross sectional area for a cable at the
         provided current. """
     ratings = cable_data[methodology]['ratings']
@@ -20,7 +23,7 @@ def select_cable_size(current, methodology, configuration):
     return None
 
 
-def get_cable_ratings(csa, methodology, configuration):
+def get_cable_ratings(csa: int, methodology: str, configuration: CableConfiguration) -> Dict:
     data = cable_data[methodology]
 
     voltage_drop = None
@@ -43,7 +46,7 @@ def get_cable_ratings(csa, methodology, configuration):
     return {'rating': rating, 'voltage_drop': voltage_drop}
 
 
-def get_cable_config(connector, phases):
+def get_cable_config(connector: str, phases: int) -> CableConfiguration:
     """ Given a connector name, return the appropriate cable configuration.
         This is kind of ugly. """
 

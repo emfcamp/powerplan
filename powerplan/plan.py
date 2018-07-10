@@ -1,12 +1,17 @@
 import networkx as nx
+from typing import Iterable, Optional, List  # noqa
 from . import ureg
+from .spec import EquipmentSpec
 from .cables import CableConfiguration, get_cable_ratings
-from .data import Generator, Distro, VirtualNode, AMF, LogicalSource, LogicalSink, PowerSource
-from .validator import validate_basic, validate_spec
+from .data import (
+    PowerNode, Generator, Distro, VirtualNode, AMF, LogicalSource, LogicalSink, PowerSource
+)
+from .validator import ValidationError, validate_basic, validate_spec
 
 
 class Plan(object):
-    def __init__(self, name=None, parent=None, spec=None, methodology='4F1A', graph=None):
+    def __init__(self, name: str=None, parent: 'Plan'=None, spec: Optional[EquipmentSpec]=None,
+                 methodology: str='4F1A', graph: Optional[nx.DiGraph]=None) -> None:
         self.name = name
         self.parent = parent
 
@@ -17,17 +22,20 @@ class Plan(object):
         self.spec = spec
         self.methodology = methodology
 
-    def num_generators(self):
+    def num_generators(self) -> int:
         return sum(1 for n in self.graph.nodes() if type(n) == Generator)
 
-    def num_distros(self):
+    def num_distros(self) -> int:
         return sum(1 for n in self.graph.nodes() if type(n) == Distro)
 
-    def add_node(self, node):
+    def add_node(self, node: PowerNode) -> None:
         node.plan = self
         self.graph.add_node(node)
 
-    def add_connection(self, from_node, to_node, current=None, phases=1, length=None):
+    def add_connection(self, from_node: PowerNode, to_node: PowerNode,
+                       current: Optional[int]=None,
+                       phases: int=1,
+                       length: Optional[float]=None) -> None:
         if not self.graph.has_node(from_node):
             self.add_node(from_node)
         if not self.graph.has_node(to_node):
@@ -36,14 +44,14 @@ class Plan(object):
         self.graph.add_edge(from_node, to_node, current=current,
                             phases=phases, length=length)
 
-    def validate(self):
+    def validate(self) -> Iterable[ValidationError]:
         errors = validate_basic(self)
         if self.spec:
             errors += validate_spec(self)
 
         return errors
 
-    def nodes(self, include_virtual=False, data=False):
+    def nodes(self, include_virtual: bool=False, data: bool=False):
         """ Enumerate nodes in the plan.
             Excludes virtual nodes (loads) unless `include_virtual` is True.
         """
@@ -56,7 +64,7 @@ class Plan(object):
             else:
                 yield node
 
-    def edges(self, include_virtual=False, data=False):
+    def edges(self, include_virtual: bool=False, data: bool=False):
         for u, v, edge_data in self.graph.edges(data=True):
             if not include_virtual and (isinstance(u, VirtualNode) or isinstance(v, VirtualNode)):
                 continue
@@ -66,12 +74,12 @@ class Plan(object):
             else:
                 yield (u, v)
 
-    def generate(self):
+    def generate(self) -> None:
         self.assign_ports()
         self.assign_cables()
         self.calculate_voltage_drop()
 
-    def assign_output(self, node, current, phases):
+    def assign_output(self, node: Distro, current: int, phases: int) -> int:
         spec = node.get_spec()
         outputs = spec.get('outputs', [])
 
@@ -87,7 +95,7 @@ class Plan(object):
             raise ValueError("Can't assign output from node %s, current %s, phases %s" %
                              (node, current, phases))
 
-    def assign_input(self, node, current, phases):
+    def assign_input(self, node: Distro, current: int, phases: int) -> int:
         spec = node.get_spec()
         inputs = spec.get('inputs', [])
 
@@ -103,7 +111,7 @@ class Plan(object):
             raise ValueError("Can't assign input to node %s, current %s, phases %s" %
                              (node, current, phases))
 
-    def assign_ports(self):
+    def assign_ports(self) -> None:
         """ Assign edges a port on each power node.
 
             If a node at either end of a cable doesn't have a spec
@@ -139,11 +147,14 @@ class Plan(object):
                 self.graph[a][b]['in_port'] = in_id
                 self.graph[a][b]['connector'] = a_spec['outputs'][out_id]['type']
 
-    def assign_cables(self):
+    def assign_cables(self) -> None:
         """ Assign cable cross-sectional areas to all cables.
 
             Cables with no assigned connectors will be skipped.
         """
+        if self.spec is None:
+            return
+
         for a, b, data in self.edges(data=True):
             if 'connector' not in data:
                 continue
@@ -174,7 +185,7 @@ class Plan(object):
 
             self.graph[a][b]['impedance'] = drop
 
-    def calculate_voltage_drop(self):
+    def calculate_voltage_drop(self) -> None:
         " Calculate voltage drop per cable length. "
         for a, b, data in self.edges(data=True):
             if not data.get('cable_lengths') or not data.get('impedance'):
@@ -185,7 +196,7 @@ class Plan(object):
             current = b.load() / b.voltage
             self.graph[a][b]['voltage_drop'] = (current * data['impedance'] * length).to(ureg.V)
 
-    def grids(self, split_amf=True):
+    def grids(self, split_amf: bool=True):
         graph = self.graph
         if split_amf:
             graph = graph.copy()
@@ -195,12 +206,14 @@ class Plan(object):
                     # Insert LogicalSource and LogicalSink nodes to split grids at the AMF.
                     self.split_graph(graph, node)
 
-        grids = []
+        grids: List['Plan'] = []
         for c in nx.weakly_connected_components(graph):
             sources = [node for node in c if isinstance(node, PowerSource)]
             if len(sources) == 0:
                 continue
             name_source = sources[0]
+
+            name = None
             if type(name_source) == LogicalSource:
                 name = "Logical {}".format(name_source.name)
             else:
@@ -213,7 +226,7 @@ class Plan(object):
         return "<Plan '{}': {} generators, {} distros, {} connections>".format(
             self.name, self.num_generators(), self.num_distros(), len(self.graph.edges()))
 
-    def split_graph(self, graph, node):
+    def split_graph(self, graph: nx.DiGraph, node: Distro) -> None:
         for upstream, data in node.inputs():
             source = upstream.source()
             logical_source = LogicalSource("Grid {}".format(source.name),
