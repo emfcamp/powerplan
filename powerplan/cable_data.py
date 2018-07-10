@@ -1,5 +1,5 @@
 
-cable_data: dict = {}
+cable_data = {}
 
 # BS7671:2008 table 4F1A
 # 60C thermosetting insulated flexible cables with sheath, non-armoured

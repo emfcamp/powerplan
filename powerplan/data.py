@@ -11,7 +11,7 @@ class PowerNode(object):
         self.name = name
         self.type = type
         self.id = id
-        self.plan: Optional['Plan'] = None
+        self.plan = None
         self.inputs_allocated: Set[int] = set()
         self.outputs_allocated: Set[int] = set()
 

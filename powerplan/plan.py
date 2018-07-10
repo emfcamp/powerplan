@@ -206,7 +206,7 @@ class Plan(object):
                     # Insert LogicalSource and LogicalSink nodes to split grids at the AMF.
                     self.split_graph(graph, node)
 
-        grids: List['Plan'] = []
+        grids = []
         for c in nx.weakly_connected_components(graph):
             sources = [node for node in c if isinstance(node, PowerSource)]
             if len(sources) == 0:
