@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Bill of Materials</h1>
+
+    <h2>Equipment</h2>
+    <table>
+        <thead>
+            <tr>
+                <td>Number</td>
+                <td>Type</td>
+                <td>Part</td>
+                <td>Used</td>
+            </tr>
+        </thead>
+        {% for type, used in nodes.items() -%}
+            <tr>
+                <td>{{used|length}}</td>
+                <td>{{type[0]}}</td>
+                <td>{{type[1]}}</td>
+                <td>{{used|join(", ")}}</td>
+            </tr>
+        {% endfor -%}
+    </table>
+    <h2>Cables</h2>
+    <table>
+        <thead>
+            <tr>
+                <td>Number</td>
+                <td>Current</td>
+                <td>Phases</td>
+                <td>Length</td>
+                <td>Used</td>
+            </tr>
+        </thead>
+        {% for type, used in edges.items() -%}
+            <tr>
+                <td>{{used|length}}</td>
+                <td>{{type[0]}}A</td>
+                <td>{{type[1]}}ϕ</td>
+                <td>{{type[2]}}m</td>
+                <td>{{used|join(", ")}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
