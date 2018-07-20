@@ -11,7 +11,7 @@ COLOUR_HEADER = 'lightcyan1'
 
 
 def _sanitise_name(name):
-    return name.lower().replace(' ', '_')
+    return name.lower().replace(' ', '_').replace('-', '_')
 
 
 def _render_port(current, phases, count=1):
@@ -178,7 +178,6 @@ def to_dot(plan):
     dot.set_rankdir('LR')
     dot.set_fontname('Arial')
     dot.set_nodesep(0.3)
-    # dot.set_splines('line')
 
     for grid in plan.grids():
         sg = _get_subgraph(grid)

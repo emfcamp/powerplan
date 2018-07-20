@@ -88,7 +88,12 @@ class PowerNode(object):
 
     def i_n(self):
         "Nominal breaker current at the input of this node"
-        return list(self.inputs())[0][1]['current'] * ureg('A')
+        input_port = list(self.inputs())[0][1]
+        if 'rating' in input_port:
+            rating = input_port['rating']
+        else:
+            rating = input_port['current']
+        return rating * ureg('A')
 
     def v_drop_ratio(self, direction=None):
         " Voltage drop L-N as a ratio of source voltage "

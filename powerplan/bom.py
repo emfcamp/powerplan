@@ -9,12 +9,12 @@ env = Environment(
 
 def generate_bom(plan):
     node_types = defaultdict(list)
-    for node in plan.graph.nodes():
+    for node in plan.nodes():
         node_types[(type(node).__name__, node.type)].append(node.name)
 
     edge_types = defaultdict(list)
 
-    for u, v, data in plan.graph.edges(data=True):
+    for u, v, data in plan.edges(data=True):
         for length in data['cable_lengths']:
             edge_types[(data['current'], data['phases'], length)].append("%s -> %s" % (u.name, v.name))
 

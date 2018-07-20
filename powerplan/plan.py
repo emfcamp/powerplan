@@ -215,10 +215,11 @@ class Plan(object):
 
             name = None
             if type(name_source) == LogicalSource:
-                name = "Logical {}".format(name_source.name)
+                amfs = [node for node in c if isinstance(node, AMF)]
+                name = amfs[0].name
             else:
                 name = name_source.name
-            grids.append(Plan(parent=self, name=name, graph=graph.subgraph(c)))
+            grids.append(Plan(parent=self, name=name, graph=graph.subgraph(c), spec=self.spec))
 
         return sorted(grids, key=lambda plan: plan.name)
 

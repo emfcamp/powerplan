@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Bill of Materials {% endblock %}
 {% block body %}
     <h1>Bill of Materials</h1>
 
@@ -6,18 +7,18 @@
     <table>
         <thead>
             <tr>
-                <td>Number</td>
-                <td>Type</td>
-                <td>Part</td>
-                <td>Used</td>
+                <th>Count</th>
+                <th>Type</th>
+                <th>Part</th>
+                <th>Used</th>
             </tr>
-        </thead>
-        {% for type, used in nodes.items() -%}
+       </thead>
+        {% for type, used in nodes|dictsort -%}
             <tr>
                 <td>{{used|length}}</td>
                 <td>{{type[0]}}</td>
                 <td>{{type[1]}}</td>
-                <td>{{used|join(", ")}}</td>
+                <td>{{used|sort|join(", ")}}</td>
             </tr>
         {% endfor -%}
     </table>
@@ -25,20 +26,20 @@
     <table>
         <thead>
             <tr>
-                <td>Number</td>
-                <td>Current</td>
-                <td>Phases</td>
-                <td>Length</td>
-                <td>Used</td>
+                <th>Count</th>
+                <th>Rating</th>
+                <th>Phases</th>
+                <th>Length</th>
+                <th>Used</th>
             </tr>
         </thead>
-        {% for type, used in edges.items() -%}
+        {% for type, used in edges|dictsort -%}
             <tr>
                 <td>{{used|length}}</td>
                 <td>{{type[0]}}A</td>
-                <td>{{type[1]}}ϕ</td>
+                <td>{{type[1]}}</td>
                 <td>{{type[2]}}m</td>
-                <td>{{used|join(", ")}}</td>
+                <td>{{used|sort|join(", ")}}</td>
             </tr>
         {% endfor %}
     </table>

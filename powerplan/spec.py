@@ -23,21 +23,23 @@ class EquipmentSpec(object):
                 _, ext = os.path.splitext(fname)
                 path = os.path.join(dirpath, fname)
                 if os.path.isfile(path) and ext in ('.yml', '.yaml'):
-                    self.load_file(path)
+                    _, supplier = os.path.split(dirpath)
+                    self.load_file(path, supplier)
 
-    def load_file(self, path):
+    def load_file(self, path, supplier):
         with open(path, 'r') as f:
             data = yaml.load(f)
 
         for item in data:
-            self.import_equipment(item)
+            self.import_equipment(item, supplier)
 
-    def import_equipment(self, item):
+    def import_equipment(self, item, supplier):
         if 'type' not in item:
             self.log.error("Type required: %s", item)
             return
 
         self.parse_item(item)
+        item['supplier'] = supplier
         if item['type'] == 'generator':
             for field in ('voltage', 'power', 'transient_reactance'):
                 if field in item:
