@@ -48,6 +48,7 @@ cable_data['4F1A']['voltage_drop'] = [
 cable_data['Eland'] = {}
 # CSA, Two conductors, 3-5 conductors, separate conductors
 cable_data['Eland']['ratings'] = [
+    (2.5, 25, 20, None),
     (4, 41, 36, None),
     (6, 53, 47, None),
     (10, 73, 64, None),
@@ -67,6 +68,8 @@ cable_data['Eland']['ratings'] = [
 
 cable_data['Eland']['voltage_drop'] = [
     # 1    2     3               4                       5     6
+    (1.5, 32,   32,             27,                     None, None),
+    (2.5, 19,   19,             16,                     None, None),
     (4,   13,   13,             11.0,                   None, None),
     (6,   8.4,  8.4,            7.30,                   None, None),
     (10,  5.0,  5.0,            4.3,                    None, None),

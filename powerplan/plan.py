@@ -11,7 +11,7 @@ from .validator import ValidationError, validate_basic, validate_spec
 
 class Plan(object):
     def __init__(self, name: str=None, parent: 'Plan'=None, spec: Optional[EquipmentSpec]=None,
-                 methodology: str='4F1A', graph: Optional[nx.DiGraph]=None) -> None:
+                 methodology: str='Eland', graph: Optional[nx.DiGraph]=None) -> None:
         self.name = name
         self.parent = parent
 
@@ -35,14 +35,15 @@ class Plan(object):
     def add_connection(self, from_node: PowerNode, to_node: PowerNode,
                        current: Optional[int]=None,
                        phases: int=1,
-                       length: Optional[float]=None) -> None:
+                       length: Optional[float]=None,
+                       logical: bool=False) -> None:
         if not self.graph.has_node(from_node):
             self.add_node(from_node)
         if not self.graph.has_node(to_node):
             self.add_node(to_node)
 
         self.graph.add_edge(from_node, to_node, current=current,
-                            phases=phases, length=length)
+                            phases=phases, length=length, logical=logical)
 
     def validate(self) -> Iterable[ValidationError]:
         errors = validate_basic(self)
@@ -147,6 +148,11 @@ class Plan(object):
                 self.graph[a][b]['in_port'] = in_id
                 self.graph[a][b]['connector'] = a_spec['outputs'][out_id]['type']
 
+                if a_spec['outputs'][out_id].get('cable', False):
+                    # This is an adaptor cable, so the downstream cable is part of it.
+                    # TODO: somehow check the length etc.
+                    self.graph[a][b]['logical'] = True
+
     def assign_cables(self) -> None:
         """ Assign cable cross-sectional areas to all cables.
 
@@ -245,4 +251,5 @@ class Plan(object):
             data['length'] = 0
             data['cable_lengths'] = [0]
             data['voltage_drop'] = 0
-            graph.add_edge(logical_source, node, **data, logical=True)
+            data['logical'] = True
+            graph.add_edge(logical_source, node, **data)

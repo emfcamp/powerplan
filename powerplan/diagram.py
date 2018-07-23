@@ -156,9 +156,11 @@ def _get_subgraph(plan):
                 " + ".join(str(l) + 'm' for l in edgedata['cable_lengths']),
                 sum(edgedata['cable_lengths']) - edgedata['length'])
 
+        if not edgedata.get('logical'):
+            edge.set_label(label)
+
         edge.set_tailport('{}-{}'.format(edgedata['current'], edgedata['phases']))
         edge.set_headport('input')
-        edge.set_label(label)
         edge.set_color(colour)
         dot.add_edge(edge)
 
