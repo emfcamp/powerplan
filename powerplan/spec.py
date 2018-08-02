@@ -4,7 +4,7 @@ import os.path
 from os import walk
 from . import ureg
 
-REQUIRED = ['type', 'ref']
+REQUIRED = ["type", "ref"]
 
 
 class EquipmentSpec(object):
@@ -22,47 +22,47 @@ class EquipmentSpec(object):
             for fname in filenames:
                 _, ext = os.path.splitext(fname)
                 path = os.path.join(dirpath, fname)
-                if os.path.isfile(path) and ext in ('.yml', '.yaml'):
+                if os.path.isfile(path) and ext in (".yml", ".yaml"):
                     _, supplier = os.path.split(dirpath)
                     self.load_file(path, supplier)
 
     def load_file(self, path, supplier):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = yaml.load(f)
 
         for item in data:
             self.import_equipment(item, supplier)
 
     def import_equipment(self, item, supplier):
-        if 'type' not in item:
+        if "type" not in item:
             self.log.error("Type required: %s", item)
             return
 
         self.parse_item(item)
-        item['supplier'] = supplier
-        if item['type'] == 'generator':
-            for field in ('voltage', 'power', 'transient_reactance'):
+        item["supplier"] = supplier
+        if item["type"] == "generator":
+            for field in ("voltage", "power", "transient_reactance"):
                 if field in item:
                     item[field] = ureg(item[field])
-            self.generator[item['ref']] = item
-        elif item['type'] in ('distro', 'amf'):
-            self.distro[item['ref']] = item
-        elif item['type'] == 'cable':
-            item['rating'] = self.convert_current(item['rating'])
-            self.cables[(item['connector'], item['rating'], item['phases'])] = item
+            self.generator[item["ref"]] = item
+        elif item["type"] in ("distro", "amf"):
+            self.distro[item["ref"]] = item
+        elif item["type"] == "cable":
+            item["rating"] = self.convert_current(item["rating"])
+            self.cables[(item["connector"], item["rating"], item["phases"])] = item
 
     def parse_item(self, item):
-        for key in ['inputs', 'outputs']:
+        for key in ["inputs", "outputs"]:
             res = []
             for io in item.get(key, []):
-                io['current'] = self.convert_current(io['current'])
-                if 'phases' not in io:
-                    io['phases'] = 1
+                io["current"] = self.convert_current(io["current"])
+                if "phases" not in io:
+                    io["phases"] = 1
 
                 count = 1
-                if 'count' in io:
-                    count = io['count']
-                    del io['count']
+                if "count" in io:
+                    count = io["count"]
+                    del io["count"]
 
                 for i in range(0, count):
                     res.append(io)
@@ -81,12 +81,12 @@ class EquipmentSpec(object):
             raise ValueError("No cable data available for %s, %sA, %s phases" % key)
 
         if length is None:
-            return (None, self.cables[key]['csa'])
+            return (None, self.cables[key]["csa"])
 
         # Calculate the shortest combination of cable lengths.
         # The n-sum problem!
 
-        lengths = sorted(self.cables[key]['lengths'])
+        lengths = sorted(self.cables[key]["lengths"])
         selected_lengths = []
 
         while sum(selected_lengths) <= length:
@@ -104,4 +104,4 @@ class EquipmentSpec(object):
                 # It isn't, so add the longest cable to the list and repeat.
                 selected_lengths += [lengths[-1]]
 
-        return (selected_lengths, self.cables[key]['csa'])
+        return (selected_lengths, self.cables[key]["csa"])

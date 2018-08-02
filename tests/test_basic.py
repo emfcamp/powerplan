@@ -59,14 +59,14 @@ def test_port_assignment(plan):
 
     assert len(plan.validate()) == 0
     plan.assign_ports()
-    assert plan.graph[a1][a2]['out_port'] == 0
-    assert plan.graph[a1][a2]['in_port'] == 0
-    assert plan.graph[a1][a3]['out_port'] == 1
-    assert plan.graph[a1][a3]['in_port'] == 0
+    assert plan.graph[a1][a2]["out_port"] == 0
+    assert plan.graph[a1][a2]["in_port"] == 0
+    assert plan.graph[a1][a3]["out_port"] == 1
+    assert plan.graph[a1][a3]["in_port"] == 0
 
     plan.assign_cables()
 
-    assert plan.graph[a1][a2]['csa'] == 16
+    assert plan.graph[a1][a2]["csa"] == 16
     assert a4.source() == gen
 
 
@@ -89,9 +89,9 @@ def test_subgraph(plan):
 
 
 def test_select_cable_lengths(spec):
-    assert spec.select_cable('IEC 60309', 63, 3, 34)[0] == [25, 10]
-    assert spec.select_cable('IEC 60309', 63, 3, 41)[0] == [50]
-    assert spec.select_cable('IEC 60309', 63, 3, 62)[0] == [50, 25]
+    assert spec.select_cable("IEC 60309", 63, 3, 34)[0] == [25, 10]
+    assert spec.select_cable("IEC 60309", 63, 3, 41)[0] == [50]
+    assert spec.select_cable("IEC 60309", 63, 3, 62)[0] == [50, 25]
 
 
 def test_fault_current(plan):

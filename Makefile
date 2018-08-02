@@ -1,3 +1,3 @@
 test:
-	flake8
+	black --check .
 	py.test --cov=powerplan

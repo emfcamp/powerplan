@@ -4,10 +4,9 @@ from . import ureg
 
 
 class PowerNode(object):
-    def __init__(self,
-                 name: Optional[str]=None,
-                 type: Optional[str]=None,
-                 id: Optional[Any]=None) -> None:
+    def __init__(
+        self, name: Optional[str] = None, type: Optional[str] = None, id: Optional[Any] = None
+    ) -> None:
         self.name = name
         self.type = type
         self.id = id
@@ -23,7 +22,7 @@ class PowerNode(object):
         else:
             return "%s(%s)" % (self.__class__.__name__, id(self))
 
-    def inputs(self, include_virtual: bool=False) -> Iterable[Tuple['PowerNode', Any]]:
+    def inputs(self, include_virtual: bool = False) -> Iterable[Tuple["PowerNode", Any]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for node, _, data in self.plan.graph.in_edges([self], data=True):
@@ -31,7 +30,7 @@ class PowerNode(object):
                 continue
             yield (node, data)
 
-    def outputs(self, include_virtual: bool=False) -> Iterable[Tuple['PowerNode', Any]]:
+    def outputs(self, include_virtual: bool = False) -> Iterable[Tuple["PowerNode", Any]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for _, node, data in self.plan.graph.out_edges([self], data=True):
@@ -45,7 +44,7 @@ class PowerNode(object):
             s *= ureg.W
         return s
 
-    def source(self, ipt: Optional['PowerNode']=None) -> 'PowerNode':
+    def source(self, ipt: Optional["PowerNode"] = None) -> "PowerNode":
         """ Return the power source for this node.
 
             If the node has multiple inputs you must specify which upstream node to
@@ -59,7 +58,7 @@ class PowerNode(object):
         else:
             return self.source_for_input(ipt)
 
-    def source_for_input(self, ipt: 'PowerNode') -> 'PowerNode':
+    def source_for_input(self, ipt: "PowerNode") -> "PowerNode":
         if isinstance(ipt, PowerSource):
             return ipt
         else:
@@ -89,11 +88,11 @@ class PowerNode(object):
     def i_n(self):
         "Nominal breaker current at the input of this node"
         input_port = list(self.inputs())[0][1]
-        if 'rating' in input_port:
-            rating = input_port['rating']
+        if "rating" in input_port:
+            rating = input_port["rating"]
         else:
-            rating = input_port['current']
-        return rating * ureg('A')
+            rating = input_port["current"]
+        return rating * ureg("A")
 
     def v_drop_ratio(self, direction=None):
         " Voltage drop L-N as a ratio of source voltage "
@@ -122,11 +121,11 @@ class Generator(PowerSource):
 
     @property
     def voltage(self):
-        return self.get_spec().get('voltage')
+        return self.get_spec().get("voltage")
 
     @property
     def power(self):
-        return self.get_spec().get('power')
+        return self.get_spec().get("power")
 
     def z_e(self):
         """ Ze (source impedance) of the generator for fault current calculation.
@@ -141,16 +140,15 @@ class Generator(PowerSource):
         """
 
         spec = self.get_spec()
-        voltage = spec.get('voltage')
-        power = spec.get('power')
-        transient_reactance = spec.get('transient_reactance')
+        voltage = spec.get("voltage")
+        power = spec.get("power")
+        transient_reactance = spec.get("transient_reactance")
 
         z = (voltage ** 2 * transient_reactance) / (power * 100)
         return (z).to(ureg.ohm)
 
 
 class Distro(PowerNode):
-
     def _input_attrs(self, source):
         if source is None:
             inputs = list(self.inputs())
@@ -166,14 +164,14 @@ class Distro(PowerNode):
         """ The phase conductor impedance from the power source to this node, in ohms. """
         ipt, attrs = self._input_attrs(direction)
 
-        if not attrs.get('impedance') or not attrs.get('cable_lengths'):
+        if not attrs.get("impedance") or not attrs.get("cable_lengths"):
             return None
 
         # Voltage drop is quoted as r1 + r2 in mV/A/m (milliohms/m) although unit conversion
         # is handled by pint. We need to divide by2 to get single-leg ohms/m, then multiply
         # by cable length
-        length = sum(attrs['cable_lengths']) * ureg.m
-        Z = length * (attrs['impedance'] / 2) + ipt.r1()
+        length = sum(attrs["cable_lengths"]) * ureg.m
+        Z = length * (attrs["impedance"] / 2) + ipt.r1()
         return Z
 
     def z_s(self, direction=None):
@@ -189,13 +187,13 @@ class Distro(PowerNode):
     def v_drop(self, direction=None):
         " Voltage drop L-N (volts)"
         ipt, attrs = self._input_attrs(direction)
-        if attrs.get('voltage_drop') is None:
+        if attrs.get("voltage_drop") is None:
             return None
 
         v_drop = ipt.v_drop()
         if v_drop is None:
             return None
-        return v_drop + attrs['voltage_drop']
+        return v_drop + attrs["voltage_drop"]
 
     def get_spec(self):
         return self.plan.spec.distro.get(self.type)
@@ -265,21 +263,14 @@ class LogicalSource(PowerSource):
         position in the upstream grid.
     """
 
-    def __init__(self, name, voltage, v_drop, z_s,
-                 current, phases):
+    def __init__(self, name, voltage, v_drop, z_s, current, phases):
         self.name = name
         self.id = None
         self.type = "Link"
         self._voltage = voltage
         self._v_drop = v_drop
         self._z_s = z_s
-        self.spec = {
-            'outputs': [{
-                'current': current,
-                'phases': phases
-            }],
-            'inputs': []
-        }
+        self.spec = {"outputs": [{"current": current, "phases": phases}], "inputs": []}
 
     def get_spec(self):
         return self.spec
@@ -295,7 +286,7 @@ class LogicalSource(PowerSource):
         return self._z_s
 
     def i_n(self):
-        return self.spec['outputs'][0]['current'] * ureg.A
+        return self.spec["outputs"][0]["current"] * ureg.A
 
 
 class LogicalSink(PowerNode):
@@ -310,13 +301,7 @@ class LogicalSink(PowerNode):
         self.id = None
         self.type = "Link"
         self._load = load
-        self.spec = {
-            'inputs': [{
-                'current': current,
-                'phases': phases
-            }],
-            'outputs': []
-        }
+        self.spec = {"inputs": [{"current": current, "phases": phases}], "outputs": []}
 
     def get_spec(self):
         return self.spec

@@ -57,28 +57,35 @@ def validate_spec(plan):
             errors.append(ValidationError(node, "Spec not found for item: %s" % node.type))
             continue
 
-        if len(list(node.outputs())) > len(spec.get('outputs', [])):
+        if len(list(node.outputs())) > len(spec.get("outputs", [])):
             errors.append(ValidationError(node, "More outputs than available"))
             continue
 
-        if len(list(node.inputs())) > len(spec.get('inputs', [])):
-            errors.append(ValidationError(node, "More inputs than available: %s" % (node.inputs(), )))
+        if len(list(node.inputs())) > len(spec.get("inputs", [])):
+            errors.append(ValidationError(node, "More inputs than available: %s" % (node.inputs(),)))
             continue
 
         for _, attribs in node.outputs():
-            for item in spec['outputs']:
-                if item['phases'] == attribs['phases'] and item['current'] == attribs['current']:
+            for item in spec["outputs"]:
+                if item["phases"] == attribs["phases"] and item["current"] == attribs["current"]:
                     break
             else:
-                errors.append(ValidationError(node, "No output for current: %s, phases: %s" %
-                                              (attribs['current'], attribs['phases'])))
+                errors.append(
+                    ValidationError(
+                        node,
+                        "No output for current: %s, phases: %s" % (attribs["current"], attribs["phases"]),
+                    )
+                )
 
         for _, attribs in node.inputs():
-            for item in spec['inputs']:
-                if item['phases'] == attribs['phases'] and item['current'] == attribs['current']:
+            for item in spec["inputs"]:
+                if item["phases"] == attribs["phases"] and item["current"] == attribs["current"]:
                     break
             else:
-                errors.append(ValidationError(node, "No input for current: %s, phases: %s" %
-                                              (attribs['current'], attribs['phases'])))
+                errors.append(
+                    ValidationError(
+                        node, "No input for current: %s, phases: %s" % (attribs["current"], attribs["phases"])
+                    )
+                )
 
     return errors

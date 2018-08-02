@@ -3,9 +3,9 @@ cable_data = {}
 
 # BS7671:2008 table 4F1A
 # 60C thermosetting insulated flexible cables with sheath, non-armoured
-cable_data['4F1A'] = {}
+cable_data["4F1A"] = {}
 #    CSA, Two conductors, 3-5 conductors, separate conductors
-cable_data['4F1A']['ratings'] = [
+cable_data["4F1A"]["ratings"] = [
     (4, 30, 26, None),
     (6, 39, 34, None),
     (10, 51, 47, None),
@@ -22,9 +22,10 @@ cable_data['4F1A']['ratings'] = [
     (300, None, 394, 541),
     (400, None, None, 644),
     (500, None, None, 738),
-    (630, None, None, 861)]
+    (630, None, None, 861),
+]
 
-cable_data['4F1A']['voltage_drop'] = [
+cable_data["4F1A"]["voltage_drop"] = [
     (4, 12, 12, 10, None, None),
     (6, 7.8, 7.8, 6.7, None, None),
     (10, 4.6, 4.6, 4.0, None, None),
@@ -41,13 +42,14 @@ cable_data['4F1A']['voltage_drop'] = [
     (300, None, None, (0.135, 0.125, 0.185), 0.150, (0.155, 0.180, 0.24)),
     (400, None, None, None, 0.115, (0.120, 0.175, 0.21)),
     (500, None, None, None, 0.090, (0.099, 0.170, 0.20)),
-    (630, None, None, None, 0.068, (0.079, 0.170, 0.185))]
+    (630, None, None, None, 0.068, (0.079, 0.170, 0.185)),
+]
 
 
 # Eland Cables H07RN-F Cable Datasheet
-cable_data['Eland'] = {}
+cable_data["Eland"] = {}
 # CSA, Two conductors, 3-5 conductors, separate conductors
-cable_data['Eland']['ratings'] = [
+cable_data["Eland"]["ratings"] = [
     (2.5, 25, 20, None),
     (4, 41, 36, None),
     (6, 53, 47, None),
@@ -64,25 +66,27 @@ cable_data['Eland']['ratings'] = [
     (240, None, 467, 645),
     (300, None, 537, 741),
     (400, None, None, 885),
-    (630, None, None, 1190)]
+    (630, None, None, 1190),
+]
 
-cable_data['Eland']['voltage_drop'] = [
+cable_data["Eland"]["voltage_drop"] = [
     # 1    2     3               4                       5     6
-    (1.5, 32,   32,             27,                     None, None),
-    (2.5, 19,   19,             16,                     None, None),
-    (4,   13,   13,             11.0,                   None, None),
-    (6,   8.4,  8.4,            7.30,                   None, None),
-    (10,  5.0,  5.0,            4.3,                    None, None),
-    (16,  3.1,  3.1,            2.7,                    None, None),
-    (25,  2.0,  (2, 0.175, 2),  (1.700, 0.150, 1.700),  None, None),
-    (35,  1.42, None,           (1.200, 0.150, 1.200),  None, (1.420, 0.210, 1.430)),
-    (50,  0.99, None,           (0.900, 0.145, 0.910),  None, (0.990, 0.210, 1.010)),
-    (70,  0.70, None,           (0.610, 0.140, 0.630),  None, (0.700, 0.200, 0.720)),
-    (95,  None, None,           (0.460, 0.135, 0.480),  None, (0.530, 0.195, 0.560)),
-    (120, None, None,           (0.360, 0.135, 0.390),  None, (0.410, 0.190, 0.460)),
-    (150, None, None,           (0.290, 0.130, 0.320),  None, (0.330, 0.190, 0.380)),
-    (185, None, None,           (0.240, 0.130, 0.270),  None, (0.270, 0.190, 0.330)),
-    (240, None, None,           (0.185, 0.130, 0.220),  None, (0.210, 0.185, 0.280)),
-    (300, None, None,           (0.145, 0.125, 0.195),  None, (0.170, 0.180, 0.250)),
-    (400, None, None,           None,                   None, (0.130, 0.175, 0.220)),
-    (630, None, None,           None,                   None, (0.084, 0.170, 0.190))]
+    (1.5, 32, 32, 27, None, None),
+    (2.5, 19, 19, 16, None, None),
+    (4, 13, 13, 11.0, None, None),
+    (6, 8.4, 8.4, 7.30, None, None),
+    (10, 5.0, 5.0, 4.3, None, None),
+    (16, 3.1, 3.1, 2.7, None, None),
+    (25, 2.0, (2, 0.175, 2), (1.700, 0.150, 1.700), None, None),
+    (35, 1.42, None, (1.200, 0.150, 1.200), None, (1.420, 0.210, 1.430)),
+    (50, 0.99, None, (0.900, 0.145, 0.910), None, (0.990, 0.210, 1.010)),
+    (70, 0.70, None, (0.610, 0.140, 0.630), None, (0.700, 0.200, 0.720)),
+    (95, None, None, (0.460, 0.135, 0.480), None, (0.530, 0.195, 0.560)),
+    (120, None, None, (0.360, 0.135, 0.390), None, (0.410, 0.190, 0.460)),
+    (150, None, None, (0.290, 0.130, 0.320), None, (0.330, 0.190, 0.380)),
+    (185, None, None, (0.240, 0.130, 0.270), None, (0.270, 0.190, 0.330)),
+    (240, None, None, (0.185, 0.130, 0.220), None, (0.210, 0.185, 0.280)),
+    (300, None, None, (0.145, 0.125, 0.195), None, (0.170, 0.180, 0.250)),
+    (400, None, None, None, None, (0.130, 0.175, 0.220)),
+    (630, None, None, None, None, (0.084, 0.170, 0.190)),
+]
