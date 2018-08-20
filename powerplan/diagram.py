@@ -169,7 +169,7 @@ def _get_subgraph(plan):
     return dot
 
 
-def to_dot(plan):
+def to_dot(plan, split_subplans=True):
     if not plan.spec:
         raise ValueError("Diagrams can only be drawn of plans which have a spec assigned")
 
@@ -183,7 +183,12 @@ def to_dot(plan):
     dot.set_fontname("Arial")
     dot.set_nodesep(0.3)
 
-    for grid in plan.grids():
+    if split_subplans:
+        grids = plan.grids()
+    else:
+        grids = [plan]
+
+    for grid in grids:
         sg = _get_subgraph(grid)
         sg.set_color("gray80")
         sg.set_style("dashed")
