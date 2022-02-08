@@ -5,3 +5,4 @@ pytest-random-order==1.0.4
 flake8==4.0.1
 black==22.1.0
 mypy==0.910
+types-PyYAML==6.0.4
