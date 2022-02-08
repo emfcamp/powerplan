@@ -1,4 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from .data import Distro, PowerSource
+
+if TYPE_CHECKING:
+    from .plan import Plan
 
 
 class ValidationError(object):
@@ -13,8 +18,8 @@ class ValidationError(object):
         return str(self)
 
 
-def validate_node_uniqueness(plan):
-    nodes = sorted(plan.nodes(), key=lambda node: node.name)
+def validate_node_uniqueness(plan: Plan):
+    nodes = sorted(plan.nodes(), key=lambda node: node.name or "")
     duplicates = set()
     for i in range(len(nodes) - 1):
         if nodes[i].name == nodes[i + 1].name:
@@ -24,7 +29,7 @@ def validate_node_uniqueness(plan):
     return [ValidationError(node, "Duplicate node name") for node in duplicates]
 
 
-def validate_basic(plan):
+def validate_basic(plan: Plan):
     errors = []
     for node in plan.nodes():
         in_edges = list(node.inputs())
@@ -44,7 +49,7 @@ def validate_basic(plan):
     return errors
 
 
-def validate_spec(plan):
+def validate_spec(plan: Plan):
     errors = []
 
     for node in plan.nodes():

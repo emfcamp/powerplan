@@ -10,8 +10,8 @@ class CableConfiguration(Enum):
 
 
 def select_cable_size(current: int, methodology: str, configuration: CableConfiguration) -> Optional[int]:
-    """ Return the cross sectional area for a cable at the
-        provided current. """
+    """Return the cross sectional area for a cable at the
+    provided current."""
     ratings = cable_data[methodology]["ratings"]
     col = configuration.value
 
@@ -45,8 +45,8 @@ def get_cable_ratings(csa: int, methodology: str, configuration: CableConfigurat
 
 
 def get_cable_config(connector: str, phases: int) -> CableConfiguration:
-    """ Given a connector name, return the appropriate cable configuration.
-        This is kind of ugly. """
+    """Given a connector name, return the appropriate cable configuration.
+    This is kind of ugly."""
 
     if connector.lower() == "powerlock":
         return CableConfiguration.TWO_SINGLE

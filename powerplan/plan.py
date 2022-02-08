@@ -1,5 +1,6 @@
+from __future__ import annotations
 import networkx as nx
-from typing import Iterable, Optional, List  # noqa
+from typing import Iterable, Optional, List, Union  # noqa
 from . import ureg
 from .spec import EquipmentSpec
 from .cables import CableConfiguration, get_cable_ratings
@@ -11,11 +12,11 @@ class Plan(object):
     def __init__(
         self,
         name: str = None,
-        parent: "Plan" = None,
+        parent: Plan = None,
         spec: Optional[EquipmentSpec] = None,
         methodology: str = "Eland",
         graph: Optional[nx.DiGraph] = None,
-    ) -> None:
+    ):
         self.name = name
         self.parent = parent
 
@@ -61,35 +62,27 @@ class Plan(object):
 
         return errors
 
-    def nodes(self, include_virtual: bool = False, data: bool = False):
-        """ Enumerate nodes in the plan.
-            Excludes virtual nodes (loads) unless `include_virtual` is True.
+    def nodes(self, include_virtual: bool = False) -> Iterable[PowerNode]:
+        """Enumerate nodes in the plan.
+        Excludes virtual nodes (loads) unless `include_virtual` is True.
         """
-        for node, node_data in self.graph.nodes(True):
+        for node, _node_data in self.graph.nodes(True):
             if not include_virtual and isinstance(node, VirtualNode):
                 continue
+            yield node
 
-            if data:
-                yield (node, node_data)
-            else:
-                yield node
-
-    def edges(self, include_virtual: bool = False, data: bool = False):
+    def edges(self, include_virtual: bool = False) -> Iterable[tuple[PowerNode, PowerNode, dict]]:
         for u, v, edge_data in self.graph.edges(data=True):
             if not include_virtual and (isinstance(u, VirtualNode) or isinstance(v, VirtualNode)):
                 continue
-
-            if data:
-                yield (u, v, edge_data)
-            else:
-                yield (u, v)
+            yield (u, v, edge_data)
 
     def generate(self) -> None:
         self.assign_ports()
         self.assign_cables()
         self.calculate_voltage_drop()
 
-    def assign_output(self, node: Distro, current: int, phases: int) -> int:
+    def assign_output(self, node: PowerNode, current: int, phases: int) -> int:
         spec = node.get_spec()
         outputs = spec.get("outputs", [])
 
@@ -105,7 +98,7 @@ class Plan(object):
                 "Can't assign output from node %s, current %s, phases %s" % (node, current, phases)
             )
 
-    def assign_input(self, node: Distro, current: int, phases: int) -> int:
+    def assign_input(self, node: PowerNode, current: int, phases: int) -> int:
         spec = node.get_spec()
         inputs = spec.get("inputs", [])
 
@@ -120,10 +113,10 @@ class Plan(object):
             raise ValueError("Can't assign input to node %s, current %s, phases %s" % (node, current, phases))
 
     def assign_ports(self) -> None:
-        """ Assign edges a port on each power node.
+        """Assign edges a port on each power node.
 
-            If a node at either end of a cable doesn't have a spec
-            (perhaps because it has no type assigned), it will be skipped.
+        If a node at either end of a cable doesn't have a spec
+        (perhaps because it has no type assigned), it will be skipped.
         """
         if not self.spec:
             raise Exception("Cannot assign ports with no spec data")
@@ -135,7 +128,7 @@ class Plan(object):
                 continue
 
             # Sort outputs alphabetically by name so assignments are stable
-            for b, data in sorted(a.outputs(), key=lambda d: d[0].name):
+            for b, data in sorted(a.outputs(), key=lambda d: d[0].name or ""):
                 if "in_port" in data:
                     continue
 
@@ -162,14 +155,14 @@ class Plan(object):
                     self.graph[a][b]["logical"] = True
 
     def assign_cables(self) -> None:
-        """ Assign cable cross-sectional areas to all cables.
+        """Assign cable cross-sectional areas to all cables.
 
-            Cables with no assigned connectors will be skipped.
+        Cables with no assigned connectors will be skipped.
         """
         if self.spec is None:
             return
 
-        for a, b, data in self.edges(data=True):
+        for a, b, data in self.edges():
             if "connector" not in data:
                 continue
 
@@ -201,14 +194,15 @@ class Plan(object):
             self.graph[a][b]["impedance"] = drop
 
     def calculate_voltage_drop(self) -> None:
-        " Calculate voltage drop per cable length. "
-        for a, b, data in self.edges(data=True):
+        "Calculate voltage drop per cable length."
+        for a, b, data in self.edges():
             if not data.get("cable_lengths") or not data.get("impedance"):
                 continue
 
             length = sum(data["cable_lengths"]) * ureg.m
             # Per-phase current is the load in watts divided by the source L-L voltage
             current = b.load() / b.voltage
+
             self.graph[a][b]["voltage_drop"] = (current * data["impedance"] * length).to(ureg.V)
 
     def grids(self, split_amf: bool = True):

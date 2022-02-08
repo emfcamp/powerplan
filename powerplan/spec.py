@@ -8,7 +8,7 @@ REQUIRED = ["type", "ref"]
 
 
 class EquipmentSpec(object):
-    """ Stores specification data about power equipment. """
+    """Stores specification data about power equipment."""
 
     def __init__(self, metadata_path):
         self.log = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class EquipmentSpec(object):
 
     def load_file(self, path, supplier):
         with open(path, "r") as f:
-            data = yaml.load(f)
+            data = yaml.load(f, Loader=yaml.SafeLoader)
 
         for item in data:
             self.import_equipment(item, supplier)
@@ -72,9 +72,9 @@ class EquipmentSpec(object):
         return ureg(val).to(ureg.A).magnitude
 
     def select_cable(self, connector, rating, phases, length):
-        """ Select appropriate cables for a run.
+        """Select appropriate cables for a run.
 
-            Returns a list of cable lengths and the cross-sectional area of the cable.
+        Returns a list of cable lengths and the cross-sectional area of the cable.
         """
         key = (connector, rating, phases)
         if key not in self.cables:

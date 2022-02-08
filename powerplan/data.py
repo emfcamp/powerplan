@@ -1,6 +1,12 @@
-from typing import Optional, Any, Iterable, Tuple, Set  # noqa
+from __future__ import annotations
+from typing import Optional, Any, Iterable, Tuple, Set, TYPE_CHECKING  # noqa
+from pint import Quantity
 from math import sqrt
+
 from . import ureg
+
+if TYPE_CHECKING:
+    from .plan import Plan
 
 
 class PowerNode(object):
@@ -10,9 +16,9 @@ class PowerNode(object):
         self.name = name
         self.type = type
         self.id = id
-        self.plan = None
-        self.inputs_allocated = set()
-        self.outputs_allocated = set()
+        self.plan: Optional[Plan] = None
+        self.inputs_allocated: set[int] = set()
+        self.outputs_allocated: set[int] = set()
 
     def __repr__(self) -> str:
         if self.name:
@@ -22,7 +28,7 @@ class PowerNode(object):
         else:
             return "%s(%s)" % (self.__class__.__name__, id(self))
 
-    def inputs(self, include_virtual: bool = False) -> Iterable[Tuple["PowerNode", Any]]:
+    def inputs(self, include_virtual: bool = False) -> Iterable[Tuple[PowerNode, dict]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for node, _, data in self.plan.graph.in_edges([self], data=True):
@@ -30,7 +36,7 @@ class PowerNode(object):
                 continue
             yield (node, data)
 
-    def outputs(self, include_virtual: bool = False) -> Iterable[Tuple["PowerNode", Any]]:
+    def outputs(self, include_virtual: bool = False) -> Iterable[Tuple[PowerNode, dict]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for _, node, data in self.plan.graph.out_edges([self], data=True):
@@ -38,17 +44,15 @@ class PowerNode(object):
                 continue
             yield (node, data)
 
-    def load(self) -> float:
-        s = sum(node.load() for node, _ in self.outputs(True))
-        if s == 0:
-            s *= ureg.W
+    def load(self) -> Quantity:
+        s = sum((node.load() for node, _ in self.outputs(True)), start=0 * ureg.W)
         return s
 
-    def source(self, ipt: Optional["PowerNode"] = None) -> "PowerNode":
-        """ Return the power source for this node.
+    def source(self, ipt: Optional[PowerNode] = None) -> PowerNode:
+        """Return the power source for this node.
 
-            If the node has multiple inputs you must specify which upstream node to
-            look via.
+        If the node has multiple inputs you must specify which upstream node to
+        look via.
         """
         if ipt is None:
             inputs = list(self.inputs())
@@ -58,34 +62,34 @@ class PowerNode(object):
         else:
             return self.source_for_input(ipt)
 
-    def source_for_input(self, ipt: "PowerNode") -> "PowerNode":
+    def source_for_input(self, ipt: PowerNode) -> PowerNode:
         if isinstance(ipt, PowerSource):
             return ipt
         else:
             return ipt.source()
 
     @property
-    def voltage(self):
-        " Nominal voltage L-L"
-        voltages = set(ipt.voltage.magnitude for ipt, _ in self.inputs())
+    def voltage(self) -> Quantity:
+        "Nominal voltage L-L"
+        voltages = set(ipt.voltage for ipt, _ in self.inputs())
         if len(voltages) > 1:
             raise Exception("Nominal voltages differ between sources: {}".format(voltages))
-        return list(voltages)[0] * ureg.V
+        return list(voltages)[0]
 
     @property
     def voltage_ln(self) -> int:
-        " Nominal Voltage L-N "
+        "Nominal Voltage L-N"
         return self.voltage / sqrt(3)
 
     def z_e(self):
         return max(ipt.z_e() for ipt, _ in self.inputs())
 
-    def i_pf(self, direction=None):
-        " Prospective fault current for a L-N or L-E fault (amps). "
+    def i_pf(self, direction=None) -> Quantity:
+        "Prospective fault current for a L-N or L-E fault (amps)."
         I = self.voltage_ln / self.z_s()
         return I.to(ureg.A)
 
-    def i_n(self):
+    def i_n(self) -> Quantity:
         "Nominal breaker current at the input of this node"
         input_port = list(self.inputs())[0][1]
         if "rating" in input_port:
@@ -95,12 +99,19 @@ class PowerNode(object):
         return rating * ureg("A")
 
     def v_drop_ratio(self, direction=None):
-        " Voltage drop L-N as a ratio of source voltage "
+        "Voltage drop L-N as a ratio of source voltage"
         v_drop = self.v_drop(direction)
 
         if v_drop is None:
             return None
         return (v_drop / self.voltage_ln).magnitude
+
+    def get_spec(self):
+        return None
+
+    def z_s(self):
+        # Implemented in downstream classes
+        raise NotImplementedError
 
 
 class PowerSource(PowerNode):
@@ -128,15 +139,15 @@ class Generator(PowerSource):
         return self.get_spec().get("power")
 
     def z_e(self):
-        """ Ze (source impedance) of the generator for fault current calculation.
+        """Ze (source impedance) of the generator for fault current calculation.
 
-            This is calculated using the transient reactance of the generator.
+        This is calculated using the transient reactance of the generator.
 
-            Zf: Transient reactance (as per-unit ratio 0-1)
-            V:  L-L Voltage (V)
-            S:  Generator power (VA)
+        Zf: Transient reactance (as per-unit ratio 0-1)
+        V:  L-L Voltage (V)
+        S:  Generator power (VA)
 
-            Zs = (V**2 * Zf) / S
+        Zs = (V**2 * Zf) / S
         """
 
         spec = self.get_spec()
@@ -144,7 +155,7 @@ class Generator(PowerSource):
         power = spec.get("power")
         transient_reactance = spec.get("transient_reactance")
 
-        z = (voltage ** 2 * transient_reactance) / (power * 100)
+        z = (voltage**2 * transient_reactance) / (power * 100)
         return (z).to(ureg.ohm)
 
 
@@ -160,22 +171,22 @@ class Distro(PowerNode):
             if ipt == source:
                 return ipt, attrs
 
-    def r1(self, direction=None):
-        """ The phase conductor impedance from the power source to this node, in ohms. """
+    def r1(self, direction=None) -> Optional[Quantity]:
+        """The phase conductor impedance from the power source to this node, in ohms."""
         ipt, attrs = self._input_attrs(direction)
 
         if not attrs.get("impedance") or not attrs.get("cable_lengths"):
             return None
 
         # Voltage drop is quoted as r1 + r2 in mV/A/m (milliohms/m) although unit conversion
-        # is handled by pint. We need to divide by2 to get single-leg ohms/m, then multiply
+        # is handled by pint. We need to divide by 2 to get single-leg ohms/m, then multiply
         # by cable length
         length = sum(attrs["cable_lengths"]) * ureg.m
         Z = length * (attrs["impedance"] / 2) + ipt.r1()
         return Z
 
-    def z_s(self, direction=None):
-        " Earth fault loop impedance (ohms)"
+    def z_s(self, direction=None) -> Optional[Quantity]:
+        "Earth fault loop impedance (ohms)"
         z_e = self.z_e()
         if z_e is None:
             return None
@@ -184,8 +195,8 @@ class Distro(PowerNode):
             return None
         return z_e + (r1 * 2)
 
-    def v_drop(self, direction=None):
-        " Voltage drop L-N (volts)"
+    def v_drop(self, direction=None) -> Optional[Quantity]:
+        "Voltage drop L-N (volts)"
         ipt, attrs = self._input_attrs(direction)
         if attrs.get("voltage_drop") is None:
             return None
@@ -204,39 +215,39 @@ class Load(VirtualNode):
         self.name = name
         self.load_value = load
 
-    def load(self):
-        l = ureg.Quantity(str(self.load_value))
+    def load(self) -> Quantity:
+        l: Quantity = ureg.Quantity(str(self.load_value))
         if l.dimensionless:
             l *= ureg.W
         return l
 
 
 class AMF(Distro):
-    """ Automatic Mains Failure panel.
+    """Automatic Mains Failure panel.
 
-        This has two inputs and switches between them if the supply fails.
+    This has two inputs and switches between them if the supply fails.
     """
 
     def r1(self, source=None):
-        " Return the highest R1 from each input "
+        "Return the highest R1 from each input"
         if source is not None:
             return super().r1(source)
         else:
             return max(self.r1(source) for source, _ in self.inputs())
 
     def z_s(self, source=None):
-        " Return the highest Zs from each input "
+        "Return the highest Zs from each input"
         if source is not None:
             return super().z_s(source)
         else:
             return max(self.z_s(source) for source, _ in self.inputs())
 
     def i_pf(self, source=None):
-        """ Return the *lowest* prospective fault current for each input.
+        """Return the *lowest* prospective fault current for each input.
 
-            NOTE: if this location is at risk of prospective fault currents
-            exceeding breaking capacity, the maximum will also need considering.
-            This situation is not plausible in generator-fed temporary installations.
+        NOTE: if this location is at risk of prospective fault currents
+        exceeding breaking capacity, the maximum will also need considering.
+        This situation is not plausible in generator-fed temporary installations.
         """
         if source is not None:
             return super().i_pf(source)
@@ -244,7 +255,7 @@ class AMF(Distro):
             return min(self.i_pf(source) for source, _ in self.inputs())
 
     def v_drop(self, source=None):
-        " Voltage drop L-N (volts)"
+        "Voltage drop L-N (volts)"
         if source is not None:
             return super().v_drop(source)
         else:
@@ -255,12 +266,12 @@ class AMF(Distro):
 
 
 class LogicalSource(PowerSource):
-    """ A power source which represents the input from another section
-        of the plan, used to preserve independent grids when an AMF joins
-        them.
+    """A power source which represents the input from another section
+    of the plan, used to preserve independent grids when an AMF joins
+    them.
 
-        This source replicates the voltage drop and impedance from its
-        position in the upstream grid.
+    This source replicates the voltage drop and impedance from its
+    position in the upstream grid.
     """
 
     def __init__(self, name, voltage, v_drop, z_s, current, phases):
@@ -290,10 +301,10 @@ class LogicalSource(PowerSource):
 
 
 class LogicalSink(PowerNode):
-    """ A power sink which represents the output to another section of
-        the plan.
+    """A power sink which represents the output to another section of
+    the plan.
 
-        This sink replicates the load from the downstream grid.
+    This sink replicates the load from the downstream grid.
     """
 
     def __init__(self, name, load, current, phases):

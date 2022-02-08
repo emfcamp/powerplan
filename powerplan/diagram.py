@@ -1,9 +1,14 @@
+from __future__ import annotations
 from datetime import date
 import pydotplus as pydot  # type: ignore
 from collections import defaultdict, OrderedDict
+from typing import TYPE_CHECKING
 
 from . import ureg
-from .data import Distro, LogicalSource, Generator, AMF
+from .data import Distro, LogicalSource, Generator, AMF, PowerNode
+
+if TYPE_CHECKING:
+    from .plan import Plan
 
 COLOUR_THREEPHASE = "firebrick3"
 COLOUR_SINGLEPHASE = "blue4"
@@ -40,11 +45,11 @@ def _unique_outputs(spec):
     return result
 
 
-def _node_additional(node):
-    " Additional detail for a node "
+def _node_additional(node: PowerNode) -> dict:
+    "Additional detail for a node"
     additional = OrderedDict()
 
-    if type(node) in (Distro, LogicalSource, AMF):
+    if isinstance(node, (Distro, LogicalSource, AMF)):
         z_s = node.z_s()
         if z_s:
             additional["Z<sub>s</sub>"] = "{:.4~H}".format(z_s)
@@ -80,8 +85,8 @@ def _node_additional(node):
     return additional
 
 
-def _node_label(node):
-    " Label format for a node. Using graphviz's HTML table support "
+def _node_label(node: PowerNode) -> str:
+    "Label format for a node. Using graphviz's HTML table support"
     spec = node.get_spec()
 
     label = '<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" color="grey30">\n'
@@ -121,7 +126,7 @@ def _node_label(node):
     return label
 
 
-def _title_label(name):
+def _title_label(name: str) -> str:
     label = '<<table border="0" cellspacing="0" cellborder="1" cellpadding="5">'
     label += '<tr><td bgcolor="{}"><b>{}</b></td></tr>'.format(COLOUR_HEADER, name)
     label += "<tr><td>Power Plan</td></tr>"
@@ -130,15 +135,15 @@ def _title_label(name):
     return label
 
 
-def _get_subgraph(plan):
+def _get_subgraph(plan: Plan):
     dot = pydot.Cluster(_sanitise_name(plan.name), label="Grid %s" % plan.name)
-    for n, nodedata in plan.nodes(data=True):
+    for n in plan.nodes():
         if n.name is None:
             raise Exception("Nodes must all be named! {} is missing a name".format(n))
         node = pydot.Node(n.name, label=_node_label(n))
         dot.add_node(node)
 
-    for u, v, edgedata in plan.edges(data=True):
+    for u, v, edgedata in plan.edges():
         edge = pydot.Edge(u.name, v.name)
 
         label = "{}A".format(edgedata["current"])
@@ -169,7 +174,7 @@ def _get_subgraph(plan):
     return dot
 
 
-def to_dot(plan, split_subplans=True):
+def to_dot(plan: Plan, split_subplans: bool = True):
     if not plan.spec:
         raise ValueError("Diagrams can only be drawn of plans which have a spec assigned")
 
@@ -195,7 +200,7 @@ def to_dot(plan, split_subplans=True):
         sg.set_labeljust("l")
         dot.add_subgraph(sg)
 
-    title = pydot.Node("title", shape="none", label=_title_label(plan.name))
+    title = pydot.Node("title", shape="none", label=_title_label(plan.name or "[UNNAMED]"))
     title.set_pos("0,0!")
     title.set_fontsize(18)
     dot.add_node(title)

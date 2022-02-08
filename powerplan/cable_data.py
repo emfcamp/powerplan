@@ -1,5 +1,4 @@
-
-cable_data = {}
+cable_data: dict[str, dict[str, list[tuple]]] = {}
 
 # BS7671:2008 table 4F1A
 # 60C thermosetting insulated flexible cables with sheath, non-armoured

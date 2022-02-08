@@ -9,8 +9,8 @@ setuptools.setup(
     author="Russ Garrett",
     author_email="russ@garrett.co.uk",
     packages=["powerplan"],
-    install_requires=["networkx==2.1", "pydotplus==2.0.2", "pint==0.8.1", "pyYAML", "jinja2==2.10"],
-    python_requires=">=3.4",
+    install_requires=["networkx>=2.6", "pydotplus>=2.0.2", "pint>=0.18", "pyYAML", "jinja2>=3.0.0"],
+    python_requires=">=3.6",
     license="GPL v3",
     zip_safe=False,
 )
