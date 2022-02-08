@@ -9,7 +9,7 @@ setuptools.setup(
     author="Russ Garrett",
     author_email="russ@garrett.co.uk",
     packages=["powerplan"],
-    package_data={'powerplan': ['templates/*']},
+    package_data={"powerplan": ["templates/*"]},
     install_requires=["networkx>=2.6", "pydotplus>=2.0.2", "pint>=0.18", "pyYAML", "jinja2>=3.0.0"],
     python_requires=">=3.6",
     license="GPL v3",
