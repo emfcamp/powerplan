@@ -21,7 +21,7 @@ def generate_bom(plan: Plan):
     for u, v, data in plan.edges():
         if data.get("logical"):
             continue
-        for length in data["cable_lengths"]:
+        for length in data.get("cable_lengths", []):
             edge_types[(data["current"], data["phases"], length)].append("%s -> %s" % (u.name, v.name))
 
     return node_types, edge_types

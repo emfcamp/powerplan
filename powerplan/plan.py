@@ -72,6 +72,13 @@ class Plan(object):
             yield node
 
     def edges(self, include_virtual: bool = False) -> Iterable[tuple[PowerNode, PowerNode, dict]]:
+        """Iterate over edges (cables) in the plan.
+
+        Excludes virtual nodes (loads) unless `include_virtual` is True.
+
+        Returns an iterator of `(from_node, to_node, data)` tuples.
+
+        """
         for u, v, edge_data in self.graph.edges(data=True):
             if not include_virtual and (isinstance(u, VirtualNode) or isinstance(v, VirtualNode)):
                 continue
