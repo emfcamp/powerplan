@@ -178,6 +178,9 @@ class Distro(PowerNode):
         if not attrs.get("impedance") or not attrs.get("cable_lengths"):
             return None
 
+        if ipt.r1() is None:
+            return None
+
         # Voltage drop is quoted as r1 + r2 in mV/A/m (milliohms/m) although unit conversion
         # is handled by pint. We need to divide by 2 to get single-leg ohms/m, then multiply
         # by cable length
