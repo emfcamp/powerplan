@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Schedule of Tests {% endblock %}
+{% block body %}
+    <h1>Schedule of Tests</h1>
+    <p>
+        Test Equipment Serial:<br/>
+        Calibration Date:
+    </p>
+
+    <h2>Tests</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Circuit details</th>
+                <th>Final</th>
+                <th>Device Type</th>
+                <th>RCD Type</th>
+                <th>RCD Delay (ms)</th>
+                <th>RCD Rating (mA)</th>
+                <th>RCD Test/Measured</th>
+                <th>Polarity</th>
+                <th>Phase Sequence</th>
+                <th>Zs</th>
+                <th>PSCC</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        {% for test in tests %}
+            <tr>
+                <td>{{test.name}}</td>
+                <td></td>
+                <td></td>
+                <td>{{test.current}}A {{test.phases}}ph</td>
+                <td>{{test.rcd}}</td>
+                <td></td>
+                <td></td>
+                <td>T</td>
+                <td></td>
+                <td>{% if test.phases < 3 %}N/A{% endif %}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+{% block style %}
+table {
+    color: #333;
+    background: white;
+    border: 1px solid grey;
+    border-collapse: collapse;
+}
+table thead th,
+table tfoot th {
+    color: #777;
+    background: rgba(0,0,0,.1);
+}
+table th,
+table td {
+    padding: .5em;
+    border: 1px solid lightgrey;
+}
+{% endblock %}
