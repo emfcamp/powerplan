@@ -1,4 +1,5 @@
 import logging
+from pint import PintError
 import yaml
 import os.path
 from os import walk
@@ -43,7 +44,10 @@ class EquipmentSpec(object):
         if item["type"] == "generator":
             for field in ("voltage", "power", "transient_reactance"):
                 if field in item:
-                    item[field] = ureg(item[field])
+                    try:
+                        item[field] = ureg(item[field])
+                    except PintError as e:
+                        raise ValueError(f"Unable to parse {field}: {item[field]} ({e})")
             self.generator[item["ref"]] = item
         elif item["type"] in ("distro", "amf"):
             self.distro[item["ref"]] = item

@@ -155,7 +155,7 @@ class Generator(PowerSource):
         power = spec.get("power")
         transient_reactance = spec.get("transient_reactance")
 
-        z = (voltage**2 * transient_reactance) / (power * 100)
+        z = (voltage**2 * transient_reactance) / (power)
         return (z).to(ureg.ohm)
 
 
