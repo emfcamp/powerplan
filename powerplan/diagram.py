@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from . import ureg
 from .data import Distro, LogicalSource, Generator, AMF, PowerNode
+from .cables import CableConfiguration, select_cable_size, get_cable_ratings
 
 if TYPE_CHECKING:
     from .plan import Plan
@@ -49,16 +50,40 @@ def _node_additional(node: PowerNode) -> dict:
     "Additional detail for a node"
     additional = OrderedDict()
 
+    final_circuit_lengths = None
     if isinstance(node, (Distro, LogicalSource, AMF)):
         z_s = node.z_s()
         if z_s:
+            # Calculate Zs and prospective fault current at the input breaker of this distro.
             additional["Z<sub>s</sub>"] = "{:.4~H}".format(z_s)
             i_pf = node.i_pf()
             trip_ratio = (i_pf / node.i_n()).magnitude
             trip_text = "({:.1f}I<sub>n</sub>)".format(trip_ratio)
-            if trip_ratio < 5:
+            if trip_ratio < 5.5:
                 trip_text = '<font color="red">{}</font>'.format(trip_text)
             additional["I<sub>pf (L-N)</sub>"] = "{:.5~H} {}".format(i_pf, trip_text)
+
+            # Select all single-phase outputs and calculate the longest cable length which will
+            # provide an acceptable prospective fault current.
+            #
+            output_ratings = set(
+                out["current"] * ureg.ampere for out in node.get_spec()["outputs"] if out["phases"] == 1
+            )
+            final_circuit_lengths = []
+            for i_n in sorted(output_ratings, reverse=True):
+                csa = select_cable_size(i_n.magnitude, "Eland", CableConfiguration.TWO_CORE)
+                if csa is None:
+                    continue
+                ratings = get_cable_ratings(csa, "Eland", CableConfiguration.TWO_CORE)
+                cable_r1 = (ratings["voltage_drop"] / 1000) * (ureg.ohm / ureg.meter)
+                max_z_s = (node.voltage_ln / (5.5 * i_n)).to(ureg.ohm)
+
+                max_length = (max_z_s - z_s) / (cable_r1 * 2)
+                final_circuit_lengths.append("{:.3~H} @ {:~H}".format(max_length, i_n))
+
+                # Adiabatic equation:
+                # k = 115
+                # print(i_n, (k**2 * csa**2) / (5.5 * i_n.magnitude) ** 2)
 
         v_drop = node.v_drop()
         if v_drop:
@@ -81,6 +106,9 @@ def _node_additional(node: PowerNode) -> dict:
     load = node.load()
     if load.magnitude > 0:
         additional["Load"] = "{:~H}".format(load.to(ureg("kW")))
+
+    if final_circuit_lengths:
+        additional["Max final<br/>circuit length"] = "<br/>".join(final_circuit_lengths)
 
     return additional
 
