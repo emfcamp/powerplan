@@ -99,7 +99,7 @@ def _node_additional(node: PowerNode) -> dict:
     elif type(node) == Generator:
         additional["P<sub>o</sub>"] = "{:~H}".format(node.power)
         additional["U"] = "{:~H}".format(node.voltage)
-        additional["Z<sub>e</sub>"] = "{:.4~H} ({}%)".format(
+        additional["Z<sub>e</sub>"] = "{:.4~H} ({:~H})".format(
             node.z_e(), node.get_spec().get("transient_reactance")
         )
 
