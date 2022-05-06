@@ -57,9 +57,12 @@ def _node_additional(node: PowerNode) -> dict:
             # Calculate Zs and prospective fault current at the input breaker of this distro.
             additional["Z<sub>s</sub>"] = "{:.4~H}".format(z_s)
             i_pf = node.i_pf()
-            trip_ratio = (i_pf / node.i_n()).magnitude
+            i_n = node.i_n()
+            trip_ratio = (i_pf / i_n).magnitude
             trip_text = "({:.1f}I<sub>n</sub>)".format(trip_ratio)
-            if trip_ratio < 5.5:
+
+            threshold = 5.5
+            if trip_ratio < threshold:
                 trip_text = '<font color="red">{}</font>'.format(trip_text)
             additional["I<sub>pf (L-N)</sub>"] = "{:.5~H} {}".format(i_pf, trip_text)
 
