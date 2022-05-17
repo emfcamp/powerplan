@@ -2,19 +2,17 @@
 {% block title %}Schedule of Tests {% endblock %}
 {% block body %}
     <h1>Schedule of Tests</h1>
-    <p>
-        Test Equipment Serial:<br/>
-        Calibration Date:
-    </p>
+    <p>To be copied into BS 7909 Form G2</p>
 
-    <h2>Tests</h2>
+    
+    {% for grid, plan in tests.items() %}
+    <h2>Tests - {{ grid }}</h2>
     <table>
         <thead>
             <tr>
-                <th>Source</th>
                 <th>Circuit details</th>
                 <th>Final</th>
-                <th>Device Type</th>
+                <th>Type/Rating</th>
                 <th>RCD Type</th>
                 <th>RCD Delay (ms)</th>
                 <th>RCD Rating (mA)</th>
@@ -26,30 +24,30 @@
                 <th>Comments</th>
             </tr>
         </thead>
-        {% for test in tests %}
+        {% for key, test in plan %}
             <tr>
-                <td>{{test.name}}</td>
+                <td>{% if test.description %}{{test.description}}{% else %}{{test.node.name}} (from {{test.source.name}}){% endif %}</td>
+                <td>{{test.final}}</td>
+                <td>{{test.data.current}}A {{test.data.phases}}ph</td>
+                <td>{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}N/A{% endif %}</td>
+                <td></td>
+                <td>{% if test.data.rcd %}{{test.data.rcd}}{% endif %}</td>
                 <td></td>
                 <td></td>
-                <td>{{test.current}}A {{test.phases}}ph</td>
-                <td>{{test.rcd}}</td>
+                <td>{% if test.data.phases < 3 %}N/A{% endif %}</td>
                 <td></td>
                 <td></td>
-                <td>T</td>
-                <td></td>
-                <td>{% if test.phases < 3 %}N/A{% endif %}</td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>{% if test.node %}Design Zs: {{test.node.z_s()}}{% endif %}</td>
             </tr>
         {% endfor %}
     </table>
+    {% endfor %}
 {% endblock %}
 {% block style %}
 table {
     color: #333;
     background: white;
-    border: 1px solid grey;
+    border: 1px solid black;
     border-collapse: collapse;
 }
 table thead th,
@@ -60,6 +58,6 @@ table tfoot th {
 table th,
 table td {
     padding: .5em;
-    border: 1px solid lightgrey;
+    border: 1px solid black;
 }
 {% endblock %}
