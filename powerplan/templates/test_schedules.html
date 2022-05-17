@@ -28,10 +28,10 @@
             <tr>
                 <td>{% if test.description %}{{test.description}}{% else %}{{test.node.name}} (from {{test.source.name}}){% endif %}</td>
                 <td>{{test.final}}</td>
-                <td>{{test.data.current}}A {{test.data.phases}}ph</td>
+                <td>{{test.data.current}}A {{test.data.phases}}ph {% if test.data.rcd %}{{test.data.rcd}}{%endif%}</td>
                 <td>{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}N/A{% endif %}</td>
                 <td></td>
-                <td>{% if test.data.rcd %}{{test.data.rcd}}{% endif %}</td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td>{% if test.data.phases < 3 %}N/A{% endif %}</td>
