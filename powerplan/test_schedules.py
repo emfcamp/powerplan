@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 from re import L
 from typing import TYPE_CHECKING
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -25,12 +26,15 @@ def generate_schedule(plan: Plan):
         for a, b, data in grid.edges():
             three_phase_output = False
             if not longest:
-                longest = b
+                longest = {
+                    "source": a,
+                    "node": b,
+                    "data": data,
+                }
 
             for c, c_data in b.outputs():
                 # Test each adjustable RCD
                 if c_data["rcd"] in ADJUSTABLE:
-                    print(c.name, "adjustable")
                     tests[grid.name][c.name] = {
                         "source": b,
                         "node": c,
@@ -43,7 +47,6 @@ def generate_schedule(plan: Plan):
 
             # Test the end of each three phase run
             if data["phases"] == 3 and not three_phase_output:
-                print(b.name, "end of run")
                 tests[grid.name][b.name] = {
                     "source": a,
                     "node": b,
@@ -51,9 +54,12 @@ def generate_schedule(plan: Plan):
                 }
 
             # Test a circuit from the longest submain of each grid
-            # FIXME: can return inconsistent results for matching distances based on .outputs() sort order
-            if b.cable_length_from_source() > longest.cable_length_from_source():
-                longest = b
+            if b.cable_length_from_source() > longest["node"].cable_length_from_source():
+                longest = {
+                    "source": a,
+                    "node": b,
+                    "data": data,
+                }
 
             # Test control position supply from each powercube
             if b.get_spec()["ref"] == "Powercube":
@@ -61,7 +67,6 @@ def generate_schedule(plan: Plan):
                 name = b.name + "-pc"
                 output = b.get_spec()["outputs"][0]
                 output["rcd"] = "30mA"
-                print(name, "powercube")
                 tests[grid.name][name] = {
                     "description": "Control position power from " + b.name,
                     "source": b,
@@ -71,12 +76,7 @@ def generate_schedule(plan: Plan):
 
         # Test the distro further from the source
         if longest:
-            print(b.name, "longest")
-            tests[grid.name][b.name] = {
-                "source": a,
-                "node": b,
-                "data": data,
-            }
+            tests[grid.name][longest["node"].name] = longest
 
         # Sort alphabetically by key
         tests[grid.name] = sorted(tests[grid.name].items())
