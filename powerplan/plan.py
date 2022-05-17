@@ -155,6 +155,7 @@ class Plan(object):
                 self.graph[a][b]["out_port"] = out_id
                 self.graph[a][b]["in_port"] = in_id
                 self.graph[a][b]["connector"] = a_spec["outputs"][out_id]["type"]
+                self.graph[a][b]["rcd"] = a_spec["outputs"][out_id].get("rcd")
 
                 if a_spec["outputs"][out_id].get("cable", False):
                     # This is an adaptor cable, so the downstream cable is part of it.
