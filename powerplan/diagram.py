@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import date
 import pydotplus as pydot  # type: ignore
 from collections import defaultdict, OrderedDict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Any
 
 from . import ureg
 from .data import Distro, LogicalSource, Generator, AMF, PowerNode
@@ -32,6 +32,16 @@ def _render_port(current, phases, count=1):
     txt += "{}A {}ϕ".format(current, phases)
     txt += "</font>"
     return txt
+
+
+def calculate_max_length(V, Z_s, I_n: float, csa: float):
+    """Calculate maximum length of a cable which will still satisfy the fault current requirement."""
+    ratings = get_cable_ratings(csa, "Eland", CableConfiguration.TWO_CORE)
+    cable_r1 = (ratings["voltage_drop"] / 1000) * (ureg.ohm / ureg.meter)
+    max_z_s = (V / (5.5 * I_n)).to(ureg.ohm)
+
+    max_length = (max_z_s - Z_s) / (cable_r1 * 2)
+    return max_length
 
 
 def _unique_outputs(spec):
@@ -72,17 +82,24 @@ def _node_additional(node: PowerNode) -> dict:
             output_ratings = set(
                 out["current"] * ureg.ampere for out in node.get_spec()["outputs"] if out["phases"] == 1
             )
-            final_circuit_lengths = []
+
+            circuit_length_params: list[Tuple[int, float]] = []
             for i_n in sorted(output_ratings, reverse=True):
                 csa = select_cable_size(i_n.magnitude, "Eland", CableConfiguration.TWO_CORE)
                 if csa is None:
                     continue
-                ratings = get_cable_ratings(csa, "Eland", CableConfiguration.TWO_CORE)
-                cable_r1 = (ratings["voltage_drop"] / 1000) * (ureg.ohm / ureg.meter)
-                max_z_s = (node.voltage_ln / (5.5 * i_n)).to(ureg.ohm)
+                circuit_length_params.append((i_n, float(csa)))
 
-                max_length = (max_z_s - z_s) / (cable_r1 * 2)
-                final_circuit_lengths.append("{:.3~H} @ {:~H}".format(max_length, i_n))
+                if i_n <= 16 * ureg.A:
+                    # For circuits 16A and lower also include a worst-case 1.25 mm^2 CSA
+                    circuit_length_params.append((i_n, 1.5))
+
+            final_circuit_lengths = []
+            for (i_n, c_csa) in circuit_length_params:
+                max_length = calculate_max_length(node.voltage_ln, z_s, i_n, c_csa)
+                final_circuit_lengths.append(
+                    "{:.4~H} @ {:~H} ({:} mm<sup>2</sup>)".format(max_length, i_n, c_csa)
+                )
 
                 # Adiabatic equation:
                 # k = 115
