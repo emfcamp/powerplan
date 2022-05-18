@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import date
 import pydotplus as pydot  # type: ignore
 from collections import defaultdict, OrderedDict
-from typing import TYPE_CHECKING, Tuple, Any
+from typing import TYPE_CHECKING, Tuple
 
 from . import ureg
 from .data import Distro, LogicalSource, Generator, AMF, PowerNode
