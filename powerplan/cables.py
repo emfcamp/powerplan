@@ -21,7 +21,7 @@ def select_cable_size(current: int, methodology: str, configuration: CableConfig
     return None
 
 
-def get_cable_ratings(csa: int, methodology: str, configuration: CableConfiguration) -> Dict:
+def get_cable_ratings(csa: float, methodology: str, configuration: CableConfiguration) -> Dict:
     data = cable_data[methodology]
 
     voltage_drop = None

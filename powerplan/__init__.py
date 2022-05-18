@@ -1,6 +1,11 @@
 import pint
 
-ureg = pint.UnitRegistry()
+ureg = pint.UnitRegistry(
+    preprocessors=[
+        lambda s: s.replace("%", " percent "),
+    ]
+)
+ureg.define("percent = 0.01 = %")
 
 from .plan import Plan  # noqa: E402
 from .data import Generator, Distro, Load, AMF  # noqa: E402

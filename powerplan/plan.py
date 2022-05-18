@@ -101,9 +101,7 @@ class Plan(object):
                 node.outputs_allocated.add(out_id)
                 return out_id
         else:
-            raise ValueError(
-                "Can't assign output from node %s, current %s, phases %s" % (node, current, phases)
-            )
+            raise ValueError(f"Can't assign output from node {node}, current {current}, phases {phases}.")
 
     def assign_input(self, node: PowerNode, current: int, phases: int) -> int:
         spec = node.get_spec()
