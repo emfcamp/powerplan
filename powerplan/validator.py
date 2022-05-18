@@ -67,7 +67,7 @@ def validate_spec(plan: Plan):
             continue
 
         if len(list(node.inputs())) > len(spec.get("inputs", [])):
-            errors.append(ValidationError(node, "More inputs than available: %s" % (node.inputs(),)))
+            errors.append(ValidationError(node, "More inputs than available: %s" % (list(node.inputs()),)))
             continue
 
         for _, attribs in node.outputs():
