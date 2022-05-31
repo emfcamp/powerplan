@@ -14,7 +14,7 @@ ADJUSTABLE = ["Adjustable", "adjustable", "100-1000mA"]
 
 
 def generate_schedule(plan: Plan):
-    tests = {}
+    tests: dict = {}
 
     for grid in plan.grids():
         tests[grid.name] = {}

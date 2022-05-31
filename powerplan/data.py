@@ -159,7 +159,7 @@ class Generator(PowerSource):
         return (z).to(ureg.ohm)
 
     def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
-        return 0
+        return ureg("0m")
 
 
 class Distro(PowerNode):
