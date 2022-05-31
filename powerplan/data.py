@@ -158,6 +158,9 @@ class Generator(PowerSource):
         z = (voltage**2 * transient_reactance) / (power)
         return (z).to(ureg.ohm)
 
+    def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
+        return ureg("0m")
+
 
 class Distro(PowerNode):
     def _input_attrs(self, source):
@@ -208,6 +211,17 @@ class Distro(PowerNode):
         if v_drop is None:
             return None
         return v_drop + attrs["voltage_drop"]
+
+    def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
+        "Distance from source (meters)"
+        ipt, attrs = self._input_attrs(direction)
+        if attrs.get("cable_lengths") is None:
+            return None
+
+        cable_length_from_source = ipt.cable_length_from_source()
+        if cable_length_from_source is None:
+            return None
+        return cable_length_from_source + sum(attrs["cable_lengths"])
 
     def get_spec(self):
         return self.plan.spec.distro.get(self.type)

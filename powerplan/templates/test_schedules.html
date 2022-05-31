@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Schedule of Tests {% endblock %}
+{% block body %}
+    <h1>Schedule of Tests</h1>
+    <p>To be copied into BS 7909 Form G2</p>
+
+    
+    {% for grid, plan in tests.items() %}
+    <h2>Tests - {{ grid }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Circuit details</th>
+                <th>Final</th>
+                <th>Type/Rating</th>
+                <th>RCD Type</th>
+                <th>RCD Delay (ms)</th>
+                <th>RCD Rating (mA)</th>
+                <th>RCD Test/Measured</th>
+                <th>Polarity</th>
+                <th>Phase Sequence</th>
+                <th>Zs</th>
+                <th>PSCC</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        {% for key, test in plan %}
+            <tr>
+                <td>{% if test.description %}{{test.description}}{% else %}{{test.node.name}} (from {{test.source.name}}){% endif %}</td>
+                <td>{{test.final}}</td>
+                <td>{{test.data.current}}A {{test.data.phases}}ph {% if test.data.rcd %}{{test.data.rcd}}{%endif%}</td>
+                <td>{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}N/A{% endif %}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{% if test.data.phases < 3 %}N/A{% endif %}</td>
+                <td></td>
+                <td></td>
+                <td>{% if test.node %}Design Zs: {{test.node.z_s()}}{% endif %}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+{% endblock %}
+{% block style %}
+table {
+    color: #333;
+    background: white;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+table thead th,
+table tfoot th {
+    color: #777;
+    background: rgba(0,0,0,.1);
+}
+table th,
+table td {
+    padding: .5em;
+    border: 1px solid black;
+}
+{% endblock %}
