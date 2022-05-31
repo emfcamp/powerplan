@@ -161,6 +161,7 @@ class Generator(PowerSource):
     def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
         return 0
 
+
 class Distro(PowerNode):
     def _input_attrs(self, source):
         if source is None:
