@@ -221,7 +221,7 @@ class Distro(PowerNode):
         cable_length_from_source = ipt.cable_length_from_source()
         if cable_length_from_source is None:
             return None
-        return cable_length_from_source + sum(attrs["cable_lengths"]) * ureg('meter')
+        return cable_length_from_source + sum(attrs["cable_lengths"]) * ureg("meter")
 
     def get_spec(self):
         return self.plan.spec.distro.get(self.type)
