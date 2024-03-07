@@ -26,6 +26,7 @@ cable_data["4F1A"]["ratings"] = [
     (630, None, None, 861),
 ]
 
+# CSA, two-core DC, two-core AC, multi-core AC, touching AC, touching DC
 cable_data["4F1A"]["voltage_drop"] = [
     (4, 12, 12, 10, None, None),
     (6, 7.8, 7.8, 6.7, None, None),
@@ -44,6 +45,29 @@ cable_data["4F1A"]["voltage_drop"] = [
     (400, None, None, None, 0.115, (0.120, 0.175, 0.21)),
     (500, None, None, None, 0.090, (0.099, 0.170, 0.20)),
     (630, None, None, None, 0.068, (0.079, 0.170, 0.185)),
+]
+
+# Flexible cables, non-armoured
+cable_data["4F3A"] = {}
+# Note that there are derating factors based on temperature.
+cable_data["4F3A"]["ratings"] = [
+    (0.5, 3, 3, None),
+    (0.75, 6, 6, None),
+    (1, 10, 10, None),
+    (1.25, 13, None, None),
+    (1.5, 16, 16, None),
+    (2.5, 25, 20, None),
+    (4, 32, 25, None),
+]
+
+cable_data["4F3A"]["voltage_drop"] = [
+    (0.5, None, 93, 80, None, None),
+    (0.75, None, 62, 54, None, None),
+    (1, None, 46, 40, None, None),
+    (1.25, None, 37, None, None, None),
+    (1.5, None, 32, 27, None, None),
+    (2.5, None, 19, 16, None, None),
+    (4, None, 12, 10, None, None),
 ]
 
 

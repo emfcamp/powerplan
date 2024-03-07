@@ -32,7 +32,7 @@ def generate_schedule(plan: Plan):
 
             for c, c_data in b.outputs():
                 # Test each adjustable RCD
-                if c_data["rcd"] in ADJUSTABLE:
+                if "rcd" in c_data and c_data["rcd"] in ADJUSTABLE:
                     tests[grid.name][c.name] = {
                         "source": b,
                         "node": c,

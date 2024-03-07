@@ -21,7 +21,7 @@ def select_cable_size(current: int, methodology: str, configuration: CableConfig
     return None
 
 
-def get_cable_ratings(csa: float, methodology: str, configuration: CableConfiguration) -> Dict:
+def get_cable_ratings(csa: float, methodology: str, configuration: CableConfiguration) -> Optional[Dict]:
     data = cable_data[methodology]
 
     voltage_drop = None
@@ -40,6 +40,9 @@ def get_cable_ratings(csa: float, methodology: str, configuration: CableConfigur
     for row in data["voltage_drop"]:
         if csa == row[0]:
             voltage_drop = row[col]
+
+    if rating is None or voltage_drop is None:
+        return None
 
     return {"rating": rating, "voltage_drop": voltage_drop}
 

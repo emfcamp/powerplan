@@ -34,9 +34,20 @@ def _render_port(current, phases, count=1):
     return txt
 
 
-def calculate_max_length(V, Z_s, I_n: float, csa: float):
+def calculate_max_length(
+    V,
+    Z_s,
+    I_n: float,
+    csa: float,
+    methodology: str = "Eland",
+    cable_config: CableConfiguration = CableConfiguration.TWO_CORE,
+):
     """Calculate maximum length of a cable which will still satisfy the fault current requirement."""
-    ratings = get_cable_ratings(csa, "Eland", CableConfiguration.TWO_CORE)
+    ratings = get_cable_ratings(csa, methodology, cable_config)
+    if ratings is None:
+        raise ValueError(
+            f"No ratings found for CSA: {csa}mm², methodology {methodology}, configuration {cable_config}"
+        )
     cable_r1 = (ratings["voltage_drop"] / 1000) * (ureg.ohm / ureg.meter)
     max_z_s = (V / (5.5 * I_n)).to(ureg.ohm)
 
@@ -85,18 +96,20 @@ def _node_additional(node: PowerNode) -> dict:
 
             circuit_length_params: list[Tuple[int, float]] = []
             for i_n in sorted(output_ratings, reverse=True):
-                csa = select_cable_size(i_n.magnitude, "Eland", CableConfiguration.TWO_CORE)
+                csa = select_cable_size(i_n.magnitude, "4F3A", CableConfiguration.TWO_CORE)
                 if csa is None:
                     continue
                 circuit_length_params.append((i_n, float(csa)))
 
-                if i_n <= 16 * ureg.A:
-                    # For circuits 16A and lower also include a worst-case 1.25 mm^2 CSA
-                    circuit_length_params.append((i_n, 1.5))
+                if i_n == 16 * ureg.A:
+                    # For 16A also include a worst-case 1.25 mm^2 CSA as these
+                    # cables are sometimes seen.
+                    circuit_length_params.append((i_n, 1.25))
 
             final_circuit_lengths = []
-            for (i_n, c_csa) in circuit_length_params:
-                max_length = calculate_max_length(node.voltage_ln, z_s, i_n, c_csa)
+            for i_n, c_csa in circuit_length_params:
+                # Calculate final circuit lengths using BS7671 table 4F3A (flexible, non-armoured)
+                max_length = calculate_max_length(node.voltage_ln, z_s, i_n, c_csa, methodology="4F3A")
                 final_circuit_lengths.append(
                     "{:.4~H} @ {:~H} ({:} mm<sup>2</sup>)".format(max_length, i_n, c_csa)
                 )
