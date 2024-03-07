@@ -1,43 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Schedule of Tests {% endblock %}
 {% block body %}
-    <h1>Schedule of Tests</h1>
-    <p>To be copied into BS 7909 Form G2</p>
-
-    
     {% for grid, plan in tests.items() %}
-    <h2>Tests - {{ grid }}</h2>
-    <table>
-        <thead>
+    <h2>Schedule of Test Results - Grid {{ grid }}</h2>
+    <table style="page-break-after: always;">
+      <thead>
             <tr>
-                <th>Circuit details</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th colspan="3" style="border-bottom: #333 solid">RCD</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <th>Circuit</th>
+                <th>Upstream</th>
                 <th>Final</th>
-                <th>Type/Rating</th>
-                <th>RCD Type</th>
-                <th>RCD Delay (ms)</th>
-                <th>RCD Rating (mA)</th>
-                <th>RCD Test/Measured</th>
-                <th>Polarity</th>
-                <th>Phase Sequence</th>
-                <th>Zs</th>
-                <th>PSCC</th>
-                <th>Comments</th>
+                <th>Rating</th>
+                <th>Polarity/Phase</th>
+                <th>Type</th>
+                <th>Delay (ms)</th>
+                <th>Rating (mA)</th>
+                <th style="min-width: 5em">Z<sub>s</sub></th>
+                <th>Design Z<sub>s</sub></th>
             </tr>
         </thead>
         {% for key, test in plan %}
             <tr>
-                <td>{% if test.description %}{{test.description}}{% else %}{{test.node.name}} (from {{test.source.name}}){% endif %}</td>
-                <td>{{test.final}}</td>
-                <td>{{test.data.current}}A {{test.data.phases}}ph {% if test.data.rcd %}{{test.data.rcd}}{%endif%}</td>
-                <td>{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}N/A{% endif %}</td>
+                <td style="background-color: #eee">{% if test.description %}{{test.description}}{% else %}{{test.node.name}}{% endif %}</td>
+                <td style="background-color: #eee">{{test.source.name}}</td>
+                <td style="background-color: #eee">{% if test.final %}✓{% endif %}</td>
+                <td style="background-color: #eee">{{test.data.current}}A {{test.data.phases}}Φ</td>
+                <td></td>
+                <td style="background-color: #eee">{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}-{% endif %}</td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
-                <td>{% if test.data.phases < 3 %}N/A{% endif %}</td>
-                <td></td>
-                <td></td>
-                <td>{% if test.node %}Design Zs: {{test.node.z_s()}}{% endif %}</td>
+                <td style="background-color: #eee">{% if test.node %}{{"{:.3~H}".format(test.node.z_s())}}{% endif %}</td>
             </tr>
         {% endfor %}
     </table>
@@ -47,17 +49,18 @@
 table {
     color: #333;
     background: white;
-    border: 1px solid black;
+    border: 1px solid #555;
     border-collapse: collapse;
 }
 table thead th,
 table tfoot th {
-    color: #777;
+  border: none;
+  border-right: 1px solid #555;
     background: rgba(0,0,0,.1);
 }
 table th,
 table td {
     padding: .5em;
-    border: 1px solid black;
+    border: 1px solid #555;
 }
 {% endblock %}

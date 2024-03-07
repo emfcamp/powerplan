@@ -1,4 +1,4 @@
-from powerplan import Generator, Distro
+from powerplan import Distro, Generator
 from powerplan.bom import generate_bom_html
 
 

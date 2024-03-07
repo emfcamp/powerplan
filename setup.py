@@ -1,6 +1,5 @@
 import setuptools
 
-
 setuptools.setup(
     name="powerplan",
     version="0.0.1",

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{% block title %}{% endblock %}</title>
+<style type="text/css">
+        @page {
+           size: 21cm 29.7cm;
+            margin: 20mm 25mm 20mm 25mm; /* change the margins as you want them to be. */
+        }
+         body {
+             font-family: Helvetica, Arial, sans-serif;
+                 margin: 0;
+         }
+         header {
+             background-color: #eee;
+             border-radius: 5px;
+             padding: 1em;
+         }
+    </style>
+  </head>
+  <body>
+         <header>
+             <h1>Completion Certificate</h1>
+             <p>BS7909: Code of Practice for Temporary Electrical Systems</p>
+             <p>This document is not valid without a completed Schedule of Test Results</p>
+         </header>
+         <table>
+             <tr><th>Certificate Reference Number</th><td>EMF2018-P</td></tr>
+             <tr><th>1. Event</th><td>Electromagnetic Field 2018</td></tr>
+             <tr><th>2. Location</th><td>Eastnor Castle Deer Park, Herefordshire</td></tr>
+             <tr><th>3. Part of a larger system?</th><td>Yes: Grid P</td></tr>
+             <tr><th>4. Supply</th><td>200kVA 3ph Generator</td></tr>
+             <tr><th>5. Date of inspection</th><td>2018/08/30</td></tr>
+         </table>
+        <table>
+            <tr><th>6. Source of supply used</th><td>Generator P</td></tr>
+            <tr><th>7. Supply earthing arrangements</th><td>TN-S</td></tr>
+            <tr><th>8. Protective devices at source of supply</th><td></td></tr>
+            <tr><th>9. Additional earthing arrangements</th><td></td></tr>
+
+        </table>
+  </body>
+</html>

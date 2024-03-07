@@ -1,4 +1,4 @@
-from powerplan.data import Generator, Distro, Load
+from powerplan.data import Distro, Generator, Load
 
 
 def test_load(plan):

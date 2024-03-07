@@ -1,14 +1,17 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, TextIO
+
 import csv
 from collections import defaultdict
+from typing import TYPE_CHECKING, TextIO
+
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 if TYPE_CHECKING:
     from .plan import Plan
 
 env = Environment(
-    loader=PackageLoader("powerplan", "templates"), autoescape=select_autoescape(["html", "xml"])
+    loader=PackageLoader("powerplan", "templates"),
+    autoescape=select_autoescape(["html", "xml"]),
 )
 
 
@@ -23,7 +26,9 @@ def generate_bom(plan: Plan):
         if data.get("logical"):
             continue
         for length in data.get("cable_lengths", []):
-            edge_types[(data["current"], data["phases"], length)].append("%s -> %s" % (u.name, v.name))
+            edge_types[(data["current"], data["phases"], length)].append(
+                f"{u.name} -> {v.name}"
+            )
 
     return node_types, edge_types
 

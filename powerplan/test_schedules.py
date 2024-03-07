@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 if TYPE_CHECKING:

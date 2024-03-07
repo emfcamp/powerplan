@@ -1,7 +1,9 @@
 from __future__ import annotations
-from typing import Optional, Any, Iterable, Tuple, Set, TYPE_CHECKING  # noqa
-from pint import Quantity
+
 from math import sqrt
+from typing import TYPE_CHECKING, Any, Iterable  # noqa
+
+from pint import Quantity
 
 from . import ureg
 
@@ -9,26 +11,27 @@ if TYPE_CHECKING:
     from .plan import Plan
 
 
-class PowerNode(object):
+class PowerNode:
     def __init__(
-        self, name: Optional[str] = None, type: Optional[str] = None, id: Optional[Any] = None
+        self, name: str | None = None, type: str | None = None, id: Any | None = None
     ) -> None:
         self.name = name
         self.type = type
         self.id = id
-        self.plan: Optional[Plan] = None
+        self.plan: Plan | None = None
         self.inputs_allocated: set[int] = set()
         self.outputs_allocated: set[int] = set()
 
     def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
         if self.name:
-            return "%s(name=%s)" % (self.__class__.__name__, self.name)
+            return f"{cls_name}(name={self.name})"
         elif self.id:
-            return "%s(id=%s)" % (self.__class__.__name__, self.id)
+            return f"{cls_name}(id={self.id})"
         else:
-            return "%s(%s)" % (self.__class__.__name__, id(self))
+            return f"{cls_name}({id(self)})"
 
-    def inputs(self, include_virtual: bool = False) -> Iterable[Tuple[PowerNode, dict]]:
+    def inputs(self, include_virtual: bool = False) -> Iterable[tuple[PowerNode, dict]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for node, _, data in self.plan.graph.in_edges([self], data=True):
@@ -36,7 +39,9 @@ class PowerNode(object):
                 continue
             yield (node, data)
 
-    def outputs(self, include_virtual: bool = False) -> Iterable[Tuple[PowerNode, dict]]:
+    def outputs(
+        self, include_virtual: bool = False
+    ) -> Iterable[tuple[PowerNode, dict]]:
         if self.plan is None:
             raise Exception("Node is not associated with a plan")
         for _, node, data in self.plan.graph.out_edges([self], data=True):
@@ -48,7 +53,7 @@ class PowerNode(object):
         s = sum((node.load() for node, _ in self.outputs(True)), start=0 * ureg.W)
         return s
 
-    def source(self, ipt: Optional[PowerNode] = None) -> PowerNode:
+    def source(self, ipt: PowerNode | None = None) -> PowerNode:
         """Return the power source for this node.
 
         If the node has multiple inputs you must specify which upstream node to
@@ -57,7 +62,9 @@ class PowerNode(object):
         if ipt is None:
             inputs = list(self.inputs())
             if len(inputs) > 1:
-                raise Exception("Node %s: more than one input - source needs specifying." % self)
+                raise Exception(
+                    "Node %s: more than one input - source needs specifying." % self
+                )
             return self.source_for_input(inputs[0][0])
         else:
             return self.source_for_input(ipt)
@@ -73,7 +80,7 @@ class PowerNode(object):
         "Nominal voltage L-L"
         voltages = set(ipt.voltage for ipt, _ in self.inputs())
         if len(voltages) > 1:
-            raise Exception("Nominal voltages differ between sources: {}".format(voltages))
+            raise Exception(f"Nominal voltages differ between sources: {voltages}")
         return list(voltages)[0]
 
     @property
@@ -158,7 +165,7 @@ class Generator(PowerSource):
         z = (voltage**2 * transient_reactance) / (power)
         return (z).to(ureg.ohm)
 
-    def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
+    def cable_length_from_source(self, direction=None) -> Quantity | None:
         return ureg("0m")
 
 
@@ -174,7 +181,7 @@ class Distro(PowerNode):
             if ipt == source:
                 return ipt, attrs
 
-    def r1(self, direction=None) -> Optional[Quantity]:
+    def r1(self, direction=None) -> Quantity | None:
         """The phase conductor impedance from the power source to this node, in ohms."""
         ipt, attrs = self._input_attrs(direction)
 
@@ -191,7 +198,7 @@ class Distro(PowerNode):
         Z = length * (attrs["impedance"] / 2) + ipt.r1()
         return Z
 
-    def z_s(self, direction=None) -> Optional[Quantity]:
+    def z_s(self, direction=None) -> Quantity | None:
         "Earth fault loop impedance (ohms)"
         z_e = self.z_e()
         if z_e is None:
@@ -201,7 +208,7 @@ class Distro(PowerNode):
             return None
         return z_e + (r1 * 2)
 
-    def v_drop(self, direction=None) -> Optional[Quantity]:
+    def v_drop(self, direction=None) -> Quantity | None:
         "Voltage drop L-N (volts)"
         ipt, attrs = self._input_attrs(direction)
         if attrs.get("voltage_drop") is None:
@@ -212,7 +219,7 @@ class Distro(PowerNode):
             return None
         return v_drop + attrs["voltage_drop"]
 
-    def cable_length_from_source(self, direction=None) -> Optional[Quantity]:
+    def cable_length_from_source(self, direction=None) -> Quantity | None:
         "Distance from source (meters)"
         ipt, attrs = self._input_attrs(direction)
         if attrs.get("cable_lengths") is None:
@@ -233,10 +240,10 @@ class Load(VirtualNode):
         self.load_value = load
 
     def load(self) -> Quantity:
-        l: Quantity = ureg.Quantity(str(self.load_value))
-        if l.dimensionless:
-            l *= ureg.W
-        return l
+        load: Quantity = ureg.Quantity(str(self.load_value))
+        if load.dimensionless:
+            load *= ureg.W
+        return load
 
 
 class AMF(Distro):

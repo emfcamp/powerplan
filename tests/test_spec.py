@@ -1,5 +1,6 @@
-from powerplan import Generator, ureg
 from math import sqrt
+
+from powerplan import Generator, ureg
 
 
 def test_zs(plan):

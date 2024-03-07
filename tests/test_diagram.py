@@ -1,6 +1,6 @@
 from powerplan import Plan
+from powerplan.data import Distro, Generator, Load
 from powerplan.diagram import to_dot
-from powerplan.data import Generator, Distro, Load
 
 
 def test_create_graph(spec):

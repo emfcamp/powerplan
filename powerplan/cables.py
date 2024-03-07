@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Dict
+
 from .cable_data import cable_data
 
 
@@ -9,7 +9,9 @@ class CableConfiguration(Enum):
     TWO_SINGLE = 3  # two single-core cables, laid touching
 
 
-def select_cable_size(current: int, methodology: str, configuration: CableConfiguration) -> Optional[int]:
+def select_cable_size(
+    current: int, methodology: str, configuration: CableConfiguration
+) -> int | None:
     """Return the cross sectional area for a cable at the
     provided current."""
     ratings = cable_data[methodology]["ratings"]
@@ -21,7 +23,9 @@ def select_cable_size(current: int, methodology: str, configuration: CableConfig
     return None
 
 
-def get_cable_ratings(csa: float, methodology: str, configuration: CableConfiguration) -> Optional[Dict]:
+def get_cable_ratings(
+    csa: float, methodology: str, configuration: CableConfiguration
+) -> dict | None:
     data = cable_data[methodology]
 
     voltage_drop = None
@@ -59,5 +63,5 @@ def get_cable_config(connector: str, phases: int) -> CableConfiguration:
         return CableConfiguration.TWO_CORE
     else:
         raise ValueError(
-            "Can't guess cable configuration for connector: %s, phases: %s" % (connector, phases)
+            f"Can't guess cable configuration for connector: {connector}, phases: {phases}"
         )

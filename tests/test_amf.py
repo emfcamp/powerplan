@@ -1,4 +1,4 @@
-from powerplan.data import Generator, Distro, AMF
+from powerplan.data import AMF, Distro, Generator
 from powerplan.diagram import to_dot
 
 

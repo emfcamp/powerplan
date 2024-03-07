@@ -1,4 +1,4 @@
-from powerplan import Plan, Generator, Distro
+from powerplan import Distro, Generator, Plan
 
 
 def test_create_graph():

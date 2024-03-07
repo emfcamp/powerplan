@@ -1,14 +1,16 @@
 import logging
-from pint import PintError
-import yaml
 import os.path
 from os import walk
+
+import yaml
+from pint import PintError
+
 from . import ureg
 
 REQUIRED = ["type", "ref"]
 
 
-class EquipmentSpec(object):
+class EquipmentSpec:
     """Stores specification data about power equipment."""
 
     def __init__(self, metadata_path):
@@ -19,7 +21,7 @@ class EquipmentSpec(object):
         self.load(metadata_path)
 
     def load(self, metadata_path):
-        for (dirpath, dirnames, filenames) in walk(metadata_path):
+        for dirpath, _dirnames, filenames in walk(metadata_path):
             for fname in filenames:
                 _, ext = os.path.splitext(fname)
                 path = os.path.join(dirpath, fname)
@@ -28,7 +30,7 @@ class EquipmentSpec(object):
                     self.load_file(path, supplier)
 
     def load_file(self, path, supplier):
-        with open(path, "r") as f:
+        with open(path) as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
 
         for item in data:
@@ -47,7 +49,9 @@ class EquipmentSpec(object):
                     try:
                         item[field] = ureg(item[field])
                     except PintError as e:
-                        raise ValueError(f"Unable to parse {field}: {item[field]} ({e})")
+                        raise ValueError(
+                            f"Unable to parse {field}: {item[field]} ({e})"
+                        ) from e
             self.generator[item["ref"]] = item
         elif item["type"] in ("distro", "amf"):
             self.distro[item["ref"]] = item
@@ -68,7 +72,7 @@ class EquipmentSpec(object):
                     count = io["count"]
                     del io["count"]
 
-                for i in range(0, count):
+                for _i in range(0, count):
                     res.append(io)
             item[key] = res
 
@@ -82,7 +86,9 @@ class EquipmentSpec(object):
         """
         key = (connector, rating, phases)
         if key not in self.cables:
-            raise ValueError("No cable data available for %s, %sA, %s phases" % key)
+            raise ValueError(
+                f"No cable data available for {connector}, {rating}A, {phases} phases"
+            )
 
         if length is None:
             return (None, self.cables[key]["csa"])

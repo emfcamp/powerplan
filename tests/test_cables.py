@@ -1,4 +1,4 @@
-from powerplan.cables import select_cable_size, get_cable_ratings, CableConfiguration
+from powerplan.cables import CableConfiguration, get_cable_ratings, select_cable_size
 
 
 def test_select_cable():

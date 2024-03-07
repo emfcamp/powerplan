@@ -1,21 +1,33 @@
 from __future__ import annotations
+
+from typing import Iterable, List, Optional, Union  # noqa
+
 import networkx as nx
-from typing import Iterable, Optional, List, Union  # noqa
+
 from . import ureg
-from .spec import EquipmentSpec
 from .cables import CableConfiguration, get_cable_ratings
-from .data import PowerNode, Generator, Distro, VirtualNode, AMF, LogicalSource, LogicalSink, PowerSource
+from .data import (
+    AMF,
+    Distro,
+    Generator,
+    LogicalSink,
+    LogicalSource,
+    PowerNode,
+    PowerSource,
+    VirtualNode,
+)
+from .spec import EquipmentSpec
 from .validator import ValidationError, validate_basic, validate_spec
 
 
-class Plan(object):
+class Plan:
     def __init__(
         self,
-        name: str = None,
-        parent: Plan = None,
-        spec: Optional[EquipmentSpec] = None,
+        name: str | None = None,
+        parent: Plan | None = None,
+        spec: EquipmentSpec | None = None,
         methodology: str = "Eland",
-        graph: Optional[nx.DiGraph] = None,
+        graph: nx.DiGraph | None = None,
     ):
         self.name = name
         self.parent = parent
@@ -41,9 +53,9 @@ class Plan(object):
         self,
         from_node: PowerNode,
         to_node: PowerNode,
-        current: Optional[int] = None,
+        current: int | None = None,
         phases: int = 1,
-        length: Optional[float] = None,
+        length: float | None = None,
         logical: bool = False,
     ) -> None:
         if not self.graph.has_node(from_node):
@@ -52,7 +64,12 @@ class Plan(object):
             self.add_node(to_node)
 
         self.graph.add_edge(
-            from_node, to_node, current=current, phases=phases, length=length, logical=logical
+            from_node,
+            to_node,
+            current=current,
+            phases=phases,
+            length=length,
+            logical=logical,
         )
 
     def validate(self) -> Iterable[ValidationError]:
@@ -71,7 +88,9 @@ class Plan(object):
                 continue
             yield node
 
-    def edges(self, include_virtual: bool = False) -> Iterable[tuple[PowerNode, PowerNode, dict]]:
+    def edges(
+        self, include_virtual: bool = False
+    ) -> Iterable[tuple[PowerNode, PowerNode, dict]]:
         """Iterate over edges (cables) in the plan.
 
         Excludes virtual nodes (loads) unless `include_virtual` is True.
@@ -80,7 +99,9 @@ class Plan(object):
 
         """
         for u, v, edge_data in self.graph.edges(data=True):
-            if not include_virtual and (isinstance(u, VirtualNode) or isinstance(v, VirtualNode)):
+            if not include_virtual and (
+                isinstance(u, VirtualNode) or isinstance(v, VirtualNode)
+            ):
                 continue
             yield (u, v, edge_data)
 
@@ -101,7 +122,9 @@ class Plan(object):
                 node.outputs_allocated.add(out_id)
                 return out_id
         else:
-            raise ValueError(f"Can't assign output from node {node}, current {current}, phases {phases}.")
+            raise ValueError(
+                f"Can't assign output from node {node}, current {current}, phases {phases}."
+            )
 
     def assign_input(self, node: PowerNode, current: int, phases: int) -> int:
         spec = node.get_spec()
@@ -115,7 +138,9 @@ class Plan(object):
                 node.inputs_allocated.add(in_id)
                 return in_id
         else:
-            raise ValueError("Can't assign input to node %s, current %s, phases %s" % (node, current, phases))
+            raise ValueError(
+                f"Can't assign input to node {node}, current {current}, phases {phases}"
+            )
 
     def assign_ports(self) -> None:
         """Assign edges a port on each power node.
@@ -144,10 +169,12 @@ class Plan(object):
                 out_id = self.assign_output(a, data["current"], data["phases"])
                 in_id = self.assign_input(b, data["current"], data["phases"])
 
-                if a_spec["outputs"][out_id]["type"] != b_spec["inputs"][in_id]["type"]:
+                out_type = a_spec["outputs"][out_id]["type"]
+                in_type = b_spec["inputs"][in_id]["type"]
+
+                if out_type != in_type:
                     raise ValueError(
-                        "Connector types don't match: %s on %s != %s on %s"
-                        % (a_spec["outputs"][out_id]["type"], a, b_spec["inputs"][in_id]["type"], b)
+                        f"Connector types don't match: {out_type} on {a} != {in_type} on {b}"
                     )
 
                 self.graph[a][b]["out_port"] = out_id
@@ -186,6 +213,11 @@ class Plan(object):
                 raise ValueError("Unknown cable configuration: %s", data["connector"])
 
             ratings = get_cable_ratings(csa, self.methodology, config)
+            if ratings is None:
+                raise ValueError(
+                    f"No ratings found for CSA: {csa}mm², "
+                    f"methodology {self.methodology}, configuration {config}"
+                )
             drop = ratings["voltage_drop"]
             if type(drop) == tuple:
                 # Use the scalar impedance value (Zr)
@@ -209,7 +241,9 @@ class Plan(object):
             # Per-phase current is the load in watts divided by the source L-L voltage
             current = b.load() / b.voltage
 
-            self.graph[a][b]["voltage_drop"] = (current * data["impedance"] * length).to(ureg.V)
+            self.graph[a][b]["voltage_drop"] = (
+                current * data["impedance"] * length
+            ).to(ureg.V)
 
     def grids(self, split_amf: bool = True):
         graph = self.graph
@@ -234,20 +268,23 @@ class Plan(object):
                 name = amfs[0].name
             else:
                 name = name_source.name
-            grids.append(Plan(parent=self, name=name, graph=graph.subgraph(c), spec=self.spec))
+            grids.append(
+                Plan(parent=self, name=name, graph=graph.subgraph(c), spec=self.spec)
+            )
 
         return sorted(grids, key=lambda plan: plan.name)
 
     def __repr__(self):
-        return "<Plan '{}': {} generators, {} distros, {} connections>".format(
-            self.name, self.num_generators(), self.num_distros(), len(self.graph.edges())
+        return (
+            f"<Plan '{self.name}': {self.num_generators()} generators, "
+            f"{self.num_distros()} distros, {len(self.graph.edges())} connections>"
         )
 
     def split_graph(self, graph: nx.DiGraph, node: Distro) -> None:
         for upstream, data in node.inputs():
             source = upstream.source()
             logical_source = LogicalSource(
-                "Grid {}".format(source.name),
+                f"Grid {source.name}",
                 node.voltage,
                 node.v_drop(upstream),
                 node.z_s(upstream),
@@ -255,7 +292,10 @@ class Plan(object):
                 data["phases"],
             )
             logical_sink = LogicalSink(
-                "{} {}".format(node.name, source.name), node.load(), data["current"], data["phases"]
+                f"{node.name} {source.name}",
+                node.load(),
+                data["current"],
+                data["phases"],
             )
 
             logical_source.plan = self

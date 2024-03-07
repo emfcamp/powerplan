@@ -1,18 +1,20 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from .data import Distro, PowerSource
 
 if TYPE_CHECKING:
     from .plan import Plan
 
 
-class ValidationError(object):
+class ValidationError:
     def __init__(self, node, description):
         self.node = node
         self.description = description
 
     def __str__(self):
-        return "[{} {}] {}".format(self.node, self.node.type, self.description)
+        return f"[{self.node} {self.node.type}] {self.description}"
 
     def __repr__(self):
         return str(self)
@@ -37,13 +39,19 @@ def validate_basic(plan: Plan):
 
         if isinstance(node, PowerSource):
             if len(out_edges) == 0:
-                errors.append(ValidationError(node, "Generator has no outgoing connections"))
+                errors.append(
+                    ValidationError(node, "Generator has no outgoing connections")
+                )
             if len(in_edges) > 0:
-                errors.append(ValidationError(node, "Generator has incoming connections"))
+                errors.append(
+                    ValidationError(node, "Generator has incoming connections")
+                )
 
         elif type(node) == Distro:
             if len(in_edges) == 0:
-                errors.append(ValidationError(node, "Distro has no incoming connections"))
+                errors.append(
+                    ValidationError(node, "Distro has no incoming connections")
+                )
 
     errors += validate_node_uniqueness(plan)
     return errors
@@ -59,7 +67,9 @@ def validate_spec(plan: Plan):
 
         spec = node.get_spec()
         if spec is None:
-            errors.append(ValidationError(node, "Spec not found for item: %s" % node.type))
+            errors.append(
+                ValidationError(node, "Spec not found for item: %s" % node.type)
+            )
             continue
 
         if len(list(node.outputs())) > len(spec.get("outputs", [])):
@@ -67,29 +77,40 @@ def validate_spec(plan: Plan):
             continue
 
         if len(list(node.inputs())) > len(spec.get("inputs", [])):
-            errors.append(ValidationError(node, "More inputs than available: %s" % (list(node.inputs()),)))
+            errors.append(
+                ValidationError(
+                    node, f"More inputs than available: {list(node.inputs())}"
+                )
+            )
             continue
 
         for _, attribs in node.outputs():
             for item in spec["outputs"]:
-                if item["phases"] == attribs["phases"] and item["current"] == attribs["current"]:
+                if (
+                    item["phases"] == attribs["phases"]
+                    and item["current"] == attribs["current"]
+                ):
                     break
             else:
                 errors.append(
                     ValidationError(
                         node,
-                        "No output for current: %s, phases: %s" % (attribs["current"], attribs["phases"]),
+                        f"No output for current: {attribs['current']}, phases: {attribs['phases']}",
                     )
                 )
 
         for _, attribs in node.inputs():
             for item in spec["inputs"]:
-                if item["phases"] == attribs["phases"] and item["current"] == attribs["current"]:
+                if (
+                    item["phases"] == attribs["phases"]
+                    and item["current"] == attribs["current"]
+                ):
                     break
             else:
                 errors.append(
                     ValidationError(
-                        node, "No input for current: %s, phases: %s" % (attribs["current"], attribs["phases"])
+                        node,
+                        f"No input for current: {attribs['current']}, phases: {attribs['phases']}",
                     )
                 )
 

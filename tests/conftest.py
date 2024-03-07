@@ -1,6 +1,8 @@
-import pytest
-from powerplan import EquipmentSpec, Plan
 import os.path
+
+import pytest
+
+from powerplan import EquipmentSpec, Plan
 
 thispath = os.path.realpath(os.path.dirname(__file__))
 
