@@ -13,12 +13,13 @@
                 <th>Used</th>
             </tr>
        </thead>
-        {% for type, used in nodes|dictsort -%}
+        {% for node in nodes -%}
             <tr>
-                <td>{{used|length}}</td>
-                <td>{{type[0]}}</td>
-                <td>{{type[1]}}</td>
-                <td>{{used|sort|join(", ")}}</td>
+                <td>{{node['uses']|length}}</td>
+                <td>{{node['type']}}</td>
+                <td>{{node['model']}}</td>
+                <td>{{node['supplier']}}</td>
+                <td>{{node['uses']|sort|join(", ")}}</td>
             </tr>
         {% endfor -%}
     </table>
