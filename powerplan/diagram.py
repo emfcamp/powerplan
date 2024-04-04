@@ -120,9 +120,15 @@ def _node_additional(node: PowerNode) -> dict:
                 max_length = calculate_max_length(
                     node.voltage_ln, z_s, i_n, c_csa, methodology="4F3A"
                 )
-                final_circuit_lengths.append(
-                    f"{max_length:.4~H} @ {i_n:~H} ({c_csa} mm<sup>2</sup>)"
-                )
+                if max_length < 25 * ureg.m:
+                    length_text = f'<font color="orange">{max_length:.4~H}</font>'
+                elif max_length < 10 * ureg.m:
+                    length_text = f'<font color="red">{max_length:.4~H}</font>'
+                else:
+                    length_text = f"{max_length:.4~H}"
+
+                length_text += f" @ {i_n:~H} ({c_csa} mm<sup>2</sup>)"
+                final_circuit_lengths.append(length_text)
 
                 # Adiabatic equation:
                 # k = 115
