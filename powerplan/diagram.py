@@ -231,10 +231,15 @@ def _get_subgraph(plan: Plan):
             label += " {}mm²".format(edge_data["csa"])
 
         if edge_data.get("cable_lengths"):
-            label += "\n{} ({}m spare)".format(
-                " + ".join(str(length) + "m" for length in edge_data["cable_lengths"]),
-                sum(edge_data["cable_lengths"]) - edge_data["length"],
+            label += "\n{}".format(
+                " + ".join(str(length) + "m" for length in edge_data["cable_lengths"])
             )
+
+            spare = sum(edge_data["cable_lengths"]) - edge_data["length"]
+            label += f" ({spare}m spare)"
+
+            if spare > edge_data["cable_lengths"][-1] * 0.8:
+                edge.set_fontcolor("red")
 
         if not edge_data.get("logical"):
             edge.set_label(label)
