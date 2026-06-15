@@ -13,11 +13,12 @@ if TYPE_CHECKING:
 
 class PowerNode:
     def __init__(
-        self, name: str | None = None, type: str | None = None, id: Any | None = None
+        self, name: str | None = None, type: str | None = None, id: Any | None = None, geom: str | None = None
     ) -> None:
         self.name = name
         self.type = type
         self.id = id
+        self.geom = geom
         self.plan: Plan | None = None
         self.inputs_allocated: set[int] = set()
         self.outputs_allocated: set[int] = set()
@@ -112,6 +113,14 @@ class PowerNode:
         if v_drop is None:
             return None
         return (v_drop / self.voltage_ln).magnitude
+
+    def v_after_drop(self, direction=None):
+        "Absolute voltage at this point inclusive of drop"
+        v_drop = self.v_drop(direction)
+
+        if v_drop is None:
+            return None
+        return (self.voltage_ln - v_drop).magnitude
 
     def get_spec(self):
         return None
@@ -298,11 +307,12 @@ class LogicalSource(PowerSource):
     position in the upstream grid.
     """
 
-    def __init__(self, name, voltage, v_drop, z_s, current, phases):
+    def __init__(self, name, voltage, v_drop, z_s, current, phases, geom=None):
         self.name = name
         self.id = None
         self.type = "Link"
         self._voltage = voltage
+        self.geom = geom
         self._v_drop = v_drop
         self._z_s = z_s
         self.spec = {"outputs": [{"current": current, "phases": phases}], "inputs": []}

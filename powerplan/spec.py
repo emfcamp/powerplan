@@ -1,5 +1,6 @@
 import logging
 import os.path
+from itertools import combinations_with_replacement
 from os import walk
 
 import yaml
@@ -20,6 +21,9 @@ class EquipmentSpec:
         self.cables = {}
         self.load(metadata_path)
 
+    def __len__(self):
+        return len(self.generator)+len(self.distro)+len(self.cables)
+
     def load(self, metadata_path):
         for dirpath, _dirnames, filenames in walk(metadata_path):
             for fname in filenames:
@@ -33,6 +37,8 @@ class EquipmentSpec:
         with open(path) as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
 
+        if not data:
+            return
         for item in data:
             self.import_equipment(item, supplier)
 
@@ -97,21 +103,57 @@ class EquipmentSpec:
         # The n-sum problem!
 
         lengths = sorted(self.cables[key]["lengths"])
-        selected_lengths = []
 
-        while sum(selected_lengths) <= length:
-            # See if the length is satisfied either by a single cable
-            # or a pair of adjacent lengths.
-            for i in range(len(lengths)):
-                if lengths[i] + sum(selected_lengths) >= length:
-                    selected_lengths += [lengths[i]]
-                    break
+        combinations = self.find_cable_combinations(lengths, length)
 
-                if i > 0 and lengths[i] + lengths[i - 1] >= length:
-                    selected_lengths += [lengths[i], lengths[i - 1]]
-                    break
-            else:
-                # It isn't, so add the longest cable to the list and repeat.
-                selected_lengths += [lengths[-1]]
+        selected_lengths = combinations[0][2]  # Get the cable lengths from the best combo
+
 
         return (selected_lengths, self.cables[key]["csa"])
+
+    def find_cable_combinations(self, stock, min_length, small_threshold=5.0):
+        """
+        Finds combinations of up to 5 cables that meet or exceed a minimum length,
+        ranking them using weights and a penalty for cables below a threshold.
+        """
+        if not stock:
+            return []
+
+        valid_combinations = []
+        max_stock_item = max(stock)
+
+        # weight multipliers
+        EXCESS_LENGTH_WEIGHT = 5.0  # Penalty per unit of wasted length
+        CABLE_COUNT_WEIGHT = 15.0  # Penalty per cable used (prefers fewer joints)
+        THRESHOLD_PENALTY = 15.0  # Penalty per instance of small cables on long runs
+
+        # check combinations from 1 up to 5 cables
+        for r in range(1, 6):
+            for combo in combinations_with_replacement(stock, r):
+                total = sum(combo)
+
+                if total >= min_length:
+                    excess = float(total - min_length)
+                    num_cables = len(combo)
+
+                    # base penalty for wasting length
+                    score = excess * EXCESS_LENGTH_WEIGHT
+
+                    # add penalty for using more cables (prefer fewer joints)
+                    score += num_cables * CABLE_COUNT_WEIGHT
+
+                    # disincentivize cables <= threshold ONLY IF target > largest cable
+                    if min_length > max_stock_item:
+                        # Count how many cables in this combo fall below or equal the threshold
+                        small_cable_count = sum(1 for length in combo if length <= small_threshold)
+                        score += (small_cable_count * THRESHOLD_PENALTY)
+
+                    valid_combinations.append((score, total, combo))
+
+        # sort by penalty score ascending (lowest score = best option)
+        valid_combinations.sort(key=lambda x: x[0])
+
+        if not len(valid_combinations):
+            raise ValueError(f"No valid cable combinations found to meet length {min_length}")
+            
+        return valid_combinations

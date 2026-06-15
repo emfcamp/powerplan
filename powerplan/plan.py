@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Iterable, List, Optional, Union  # noqa
 
 import networkx as nx
@@ -32,12 +33,16 @@ class Plan:
         self.name = name
         self.parent = parent
 
+        self.log = logging.getLogger(__name__)
+
         if graph:
             self.graph = graph
         else:
             self.graph = nx.DiGraph()
         self.spec = spec
         self.methodology = methodology
+
+        self.valid = True
 
     def num_generators(self) -> int:
         return sum(1 for n in self.graph.nodes() if type(n) == Generator)
@@ -76,6 +81,9 @@ class Plan:
         errors = validate_basic(self)
         if self.spec:
             errors += validate_spec(self)
+
+        if len(errors)>0:
+            self.valid = False
 
         return errors
 
@@ -166,26 +174,31 @@ class Plan:
                 if b_spec is None:
                     continue
 
-                out_id = self.assign_output(a, data["current"], data["phases"])
-                in_id = self.assign_input(b, data["current"], data["phases"])
+                try:
+                    out_id = self.assign_output(a, data["current"], data["phases"])
+                    in_id = self.assign_input(b, data["current"], data["phases"])
 
-                out_type = a_spec["outputs"][out_id]["type"]
-                in_type = b_spec["inputs"][in_id]["type"]
+                    out_type = a_spec["outputs"][out_id]["type"]
+                    in_type = b_spec["inputs"][in_id]["type"]
 
-                if out_type != in_type:
-                    raise ValueError(
-                        f"Connector types don't match: {out_type} on {a} != {in_type} on {b}"
-                    )
+                    if out_type != in_type:
+                        raise ValueError(
+                            f"Connector types don't match: {out_type} on {a} != {in_type} on {b}"
+                        )
 
-                self.graph[a][b]["out_port"] = out_id
-                self.graph[a][b]["in_port"] = in_id
-                self.graph[a][b]["connector"] = a_spec["outputs"][out_id]["type"]
-                self.graph[a][b]["rcd"] = a_spec["outputs"][out_id].get("rcd")
+                    self.graph[a][b]["out_port"] = out_id
+                    self.graph[a][b]["in_port"] = in_id
+                    self.graph[a][b]["connector"] = a_spec["outputs"][out_id]["type"]
+                    self.graph[a][b]["rcd"] = a_spec["outputs"][out_id].get("rcd")
 
-                if a_spec["outputs"][out_id].get("cable", False):
-                    # This is an adaptor cable, so the downstream cable is part of it.
-                    # TODO: somehow check the length etc.
-                    self.graph[a][b]["logical"] = True
+                    if a_spec["outputs"][out_id].get("cable", False):
+                        # This is an adaptor cable, so the downstream cable is part of it.
+                        # TODO: somehow check the length etc.
+                        self.graph[a][b]["logical"] = True
+                except ValueError as e:
+                    self.log.error(e)
+                    self.valid = False
+                    continue
 
     def assign_cables(self) -> None:
         """Assign cable cross-sectional areas to all cables.
@@ -195,41 +208,47 @@ class Plan:
         if self.spec is None:
             return
 
+        self.log.info("Assigning cables")
         for a, b, data in self.edges():
             if "connector" not in data:
                 continue
 
-            lengths, csa = self.spec.select_cable(
-                data["connector"], data["current"], data["phases"], data["length"]
-            )
-            self.graph[a][b]["csa"] = csa
-            self.graph[a][b]["cable_lengths"] = lengths
-
-            if data["connector"] == "Powerlock":
-                config = CableConfiguration.TWO_SINGLE
-            elif data["connector"] == "IEC 60309":
-                config = CableConfiguration.MULTI_CORE
-            else:
-                raise ValueError("Unknown cable configuration: %s", data["connector"])
-
-            ratings = get_cable_ratings(csa, self.methodology, config)
-            if ratings is None:
-                raise ValueError(
-                    f"No ratings found for CSA: {csa}mm², "
-                    f"methodology {self.methodology}, configuration {config}"
+            try:
+                lengths, csa = self.spec.select_cable(
+                    data["connector"], data["current"], data["phases"], data["length"]
                 )
-            drop = ratings["voltage_drop"]
-            if type(drop) == tuple:
-                # Use the scalar impedance value (Zr)
-                # TODO: use the complex impedance and calculate with expected PF
-                drop = drop[2]
+                self.graph[a][b]["csa"] = csa
+                self.graph[a][b]["cable_lengths"] = lengths
 
-            if drop is None:
+                if data["connector"] == "Powerlock":
+                    config = CableConfiguration.TWO_SINGLE
+                elif data["connector"] == "IEC 60309":
+                    config = CableConfiguration.MULTI_CORE
+                else:
+                    raise ValueError("Unknown cable configuration: %s", data["connector"])
+
+                ratings = get_cable_ratings(csa, self.methodology, config)
+                if ratings is None:
+                    raise ValueError(
+                        f"No ratings found for CSA: {csa}mm², "
+                        f"methodology {self.methodology}, configuration {config}"
+                    )
+                drop = ratings["voltage_drop"]
+                if type(drop) == tuple:
+                    # Use the scalar impedance value (Zr)
+                    # TODO: use the complex impedance and calculate with expected PF
+                    drop = drop[2]
+
+                if drop is None:
+                    continue
+
+                drop *= ureg("mohm/m")
+
+                self.graph[a][b]["impedance"] = drop
+            except ValueError as e:
+                self.log.error("%s %u/%u: %s", data["connector"], data["current"], data["phases"], e)
+                self.valid = False
                 continue
-
-            drop *= ureg("mohm/m")
-
-            self.graph[a][b]["impedance"] = drop
 
     def calculate_voltage_drop(self) -> None:
         "Calculate voltage drop per cable length."

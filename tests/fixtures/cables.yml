@@ -1,54 +1,42 @@
-- rating: 400A # Actually 379A but otherwise it won't get selected.
+- rating: 400A
   type: cable
   phases: 3
   connector: Powerlock
-  csa: 120
-  lengths: [10, 25]
-- rating: 125A
-  type: cable
-  phases: 3
-  connector: "IEC 60309"
-  csa: 35
-  lengths: [10, 25] # 50m available but too heavy.
-- rating: 63A
-  type: cable
-  phases: 3
-  connector: "IEC 60309"
-  csa: 16
-  lengths: [10, 25, 50]
-- rating: 32A
-  type: cable
-  phases: 3
-  connector: "IEC 60309"
-  csa: 6
-  lengths: [10, 25, 50]
-- rating: 16A
-  type: cable
-  phases: 3
-  connector: "IEC 60309"
-  csa: 2.5
-  lengths: [10, 25]
-- rating: 125A
-  type: cable
-  phases: 1               # wat
-  connector: "IEC 60309"
-  csa: 35
-  lengths: [10, 25]
-- rating: 63A
-  type: cable
-  phases: 1
-  connector: "IEC 60309"
-  csa: 16
-  lengths: [10, 25]
-- rating: 32A
-  type: cable
-  phases: 1
-  connector: "IEC 60309"
-  csa: 6
+  csa: 150
   lengths: [5, 10, 25, 50]
+- rating: 125A
+  type: cable
+  phases: 3
+  connector: "IEC 60309"
+  csa: 35
+  lengths: [5, 10, 20, 50]
+- rating: 63A
+  type: cable
+  phases: 3
+  connector: "IEC 60309"
+  csa: 16
+  lengths: [5, 10, 20, 50]
+- rating: 32A
+  type: cable
+  phases: 3
+  connector: "IEC 60309"
+  csa: 6
+  lengths: [5, 10, 20, 50]
+- rating: 16A
+  type: cable
+  phases: 3
+  connector: "IEC 60309"
+  csa: 2.5
+  lengths: [5, 10, 20, 50]
+- rating: 32A
+  type: cable
+  phases: 1
+  connector: "IEC 60309"
+  csa: 6
+  lengths: [5, 10, 20, 50]
 - rating: 16A
   type: cable
   phases: 1
   connector: "IEC 60309"
   csa: 2.5
-  lengths: [5, 10, 25]
+  lengths: [5, 10, 20, 50]

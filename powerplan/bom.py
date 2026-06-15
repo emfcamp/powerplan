@@ -28,21 +28,24 @@ def generate_bom(plan: Plan):
     node_data: list[dict] = []
 
     for (node_type, node_model), nodes in node_types.items():
-        if node_type is Generator:
-            spec = plan.spec.generator[node_model]
-        elif node_type is Distro:
-            spec = plan.spec.distro[node_model]
-        else:
-            raise ValueError(f"Unknown node type: {type(node)}")
+        try:
+            if node_type is Generator:
+                spec = plan.spec.generator[node_model]
+            elif node_type is Distro:
+                spec = plan.spec.distro[node_model]
+            else:
+                raise ValueError(f"Unknown node type: {type(node)}")
 
-        node_data.append(
-            {
-                "type": node_type.__name__,
-                "model": node_model,
-                "uses": sorted(nodes),
-                "supplier": spec["supplier"],
-            }
-        )
+            node_data.append(
+                {
+                    "type": node_type.__name__,
+                    "model": node_model,
+                    "uses": sorted(nodes),
+                    "supplier": spec["supplier"],
+                }
+            )
+        except KeyError:
+            raise ValueError(f"Could not find distro {node_model}") from None
 
     edge_types = defaultdict(list)
 

@@ -136,12 +136,12 @@ def _node_additional(node: PowerNode) -> dict:
 
         v_drop = node.v_drop()
         if v_drop:
-            drop_ratio = node.v_drop_ratio() * 100
-            drop_text = f"({drop_ratio:.1f}%)"
-            # Drop ratio limits from BS7671 Appendix 12
-            if drop_ratio > 8:
+            abs_voltage = node.v_after_drop()
+            drop_text = f"({abs_voltage:.1f} V)"
+
+            if abs_voltage < 220:
                 drop_text = f'<font color="red">{drop_text}</font>'
-            elif drop_ratio > 6:
+            elif abs_voltage <= 230:
                 drop_text = f'<font color="orange">{drop_text}</font>'
             additional["V<sub>drop</sub>"] = f"{v_drop:.3~H} {drop_text}"
 
@@ -196,7 +196,7 @@ def _node_label(node: PowerNode) -> str:
         label += "</td></tr>\n"
 
     if len(unique_outputs) == 0:
-        label += "</tr>"
+        label += "<td>-</td></tr>"
 
     for k, v in _node_additional(node).items():
         label += f'<tr><td align="right">{k}</td><td align="left">{v}</td></tr>'

@@ -89,9 +89,9 @@ def test_subgraph(plan):
 
 
 def test_select_cable_lengths(spec):
-    assert spec.select_cable("IEC 60309", 63, 3, 34)[0] == [25, 10]
-    assert spec.select_cable("IEC 60309", 63, 3, 41)[0] == [50]
-    assert spec.select_cable("IEC 60309", 63, 3, 62)[0] == [50, 25]
+    assert spec.select_cable("IEC 60309", 63, 3, 34)[0] == (5, 10, 20)
+    assert spec.select_cable("IEC 60309", 63, 3, 41)[0] == (50,)
+    assert spec.select_cable("IEC 60309", 63, 3, 62)[0] == (20, 50)
 
 
 def test_fault_current(plan):
