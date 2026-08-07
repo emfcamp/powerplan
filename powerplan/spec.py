@@ -85,7 +85,7 @@ class EquipmentSpec:
     def convert_current(self, val):
         return ureg(val).to(ureg.A).magnitude
 
-    def select_cable(self, connector, rating, phases, length, extra_length):
+    def select_cable(self, connector, rating, phases, length, extra_length=0):
         """Select appropriate cables for a run.
 
         Returns a list of cable lengths and the cross-sectional area of the cable.
