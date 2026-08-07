@@ -62,7 +62,7 @@ class Plan:
         phases: int = 1,
         length: float | None = None,
         logical: bool = False,
-        extra_length: float | None = None
+        extra_length: float = 0.0
     ) -> None:
         if not self.graph.has_node(from_node):
             self.add_node(from_node)
