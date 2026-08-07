@@ -1,7 +1,7 @@
 import logging
 import os.path
-from itertools import combinations_with_replacement
 from os import walk
+from itertools import combinations_with_replacement
 
 import yaml
 from pint import PintError
@@ -85,10 +85,13 @@ class EquipmentSpec:
     def convert_current(self, val):
         return ureg(val).to(ureg.A).magnitude
 
-    def select_cable(self, connector, rating, phases, length):
+    def select_cable(self, connector, rating, phases, length, extra_length):
         """Select appropriate cables for a run.
 
         Returns a list of cable lengths and the cross-sectional area of the cable.
+
+        We take ini the extra_length variable here and use it to add extra cable - so extra lengths will show up as extra "spare" in the power plan.
+
         """
         key = (connector, rating, phases)
         if key not in self.cables:
@@ -99,12 +102,15 @@ class EquipmentSpec:
         if length is None:
             return (None, self.cables[key]["csa"])
 
+        if extra_length is None:
+            extra_length = 0
+
         # Calculate the shortest combination of cable lengths.
         # The n-sum problem!
 
         lengths = sorted(self.cables[key]["lengths"])
 
-        combinations = self.find_cable_combinations(lengths, length)
+        combinations = self.find_cable_combinations(lengths, length+extra_length)
 
         selected_lengths = combinations[0][2]  # Get the cable lengths from the best combo
 

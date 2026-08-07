@@ -1,6 +1,6 @@
 from __future__ import annotations
-
 import logging
+
 from typing import Iterable, List, Optional, Union  # noqa
 
 import networkx as nx
@@ -62,6 +62,7 @@ class Plan:
         phases: int = 1,
         length: float | None = None,
         logical: bool = False,
+        extra_length: float | None = None
     ) -> None:
         if not self.graph.has_node(from_node):
             self.add_node(from_node)
@@ -75,6 +76,7 @@ class Plan:
             phases=phases,
             length=length,
             logical=logical,
+            extra_length=extra_length
         )
 
     def validate(self) -> Iterable[ValidationError]:
@@ -215,7 +217,7 @@ class Plan:
 
             try:
                 lengths, csa = self.spec.select_cable(
-                    data["connector"], data["current"], data["phases"], data["length"]
+                    data["connector"], data["current"], data["phases"], data["length"], data["extra_length"]
                 )
                 self.graph[a][b]["csa"] = csa
                 self.graph[a][b]["cable_lengths"] = lengths
