@@ -10,21 +10,22 @@
                 <th></th>
                 <th></th>
                 <th></th>
-                <th></th>
                 <th colspan="3" style="border-bottom: #333 solid">RCD</th>
+                <th></th>
                 <th></th>
                 <th></th>
             </tr>
             <tr>
                 <th>Circuit</th>
                 <th>Upstream</th>
-                <th>Final</th>
+                <!-- <th>Final</th> -->
                 <th>Rating</th>
                 <th>Polarity/Phase</th>
                 <th>Type</th>
                 <th>Delay (ms)</th>
                 <th>Rating (mA)</th>
                 <th style="min-width: 5em">Z<sub>s</sub></th>
+                <th style="min-width: 5em">PSSC</th>
                 <th>Design Z<sub>s</sub></th>
             </tr>
         </thead>
@@ -32,10 +33,12 @@
             <tr>
                 <td style="background-color: #eee">{% if test.description %}{{test.description}}{% else %}{{test.node.name}}{% endif %}</td>
                 <td style="background-color: #eee">{{test.source.name}}</td>
-                <td style="background-color: #eee">{% if test.final %}✓{% endif %}</td>
+                <!-- <td style="background-color: #eee">{% if test.final %}✓{% endif %}</td> -->
                 <td style="background-color: #eee">{{test.data.current}}A {{test.data.phases}}Φ</td>
                 <td></td>
-                <td style="background-color: #eee">{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}-{% endif %}</td>
+                <!-- <td style="background-color: #eee">{% if test.data.rcd %}{% if test.data.rcd in adjustable %}A{% else %}F{% endif %}{% else %}-{% endif %}</td> -->
+                 <td></td>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
