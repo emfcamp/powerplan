@@ -246,7 +246,7 @@ def _get_subgraph(plan: Plan):
 
             if edge_data['extra_length'] > 0: 
                 # If we manually added extra, put an indicator of how much we added on the plan
-                label += f"<br/><FONT COLOR='darkgreen'>({edge_data["extra_length"]}m extra added)</FONT>"
+                label += f"<br/><FONT COLOR='darkgreen'>({edge_data['extra_length']}m extra added)</FONT>"
             elif spare > edge_data["cable_lengths"][-1] * 0.8:
                 # If no extra added, highlight in red if we've got too much spare
                 edge.set_fontcolor("red") 

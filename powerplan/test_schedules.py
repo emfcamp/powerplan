@@ -25,7 +25,7 @@ def generate_schedule(plan: Plan):
 
         for a, b, data in grid.edges():
             # print(f"Grid {grid.name} Found node {b} with source {a} and data {data}")
-            three_phase_output = False
+            # three_phase_output = False
             if not longest:
                 longest = {
                     "source": a,
@@ -43,8 +43,8 @@ def generate_schedule(plan: Plan):
                     }
 
                 # Check if there are any used 3ph outputs
-                if c_data["phases"] == 3:
-                    three_phase_output = True
+                # if c_data["phases"] == 3:
+                #     three_phase_output = True
 
             # if three_phase_output:
             #     print(f"\tHas three phase output")

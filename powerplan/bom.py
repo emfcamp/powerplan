@@ -45,7 +45,7 @@ def generate_bom(plan: Plan):
                 }
             )
         except KeyError:
-            raise ValueError(f"Could not find distro {node_model}")
+            raise ValueError(f"Could not find distro {node_model}") from None
 
     edge_types = defaultdict(list)
 

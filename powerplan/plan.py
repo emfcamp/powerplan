@@ -1,6 +1,6 @@
 from __future__ import annotations
-import logging
 
+import logging
 from typing import Iterable, List, Optional, Union  # noqa
 
 import networkx as nx

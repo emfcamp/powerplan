@@ -1,7 +1,7 @@
 import logging
 import os.path
-from os import walk
 from itertools import combinations_with_replacement
+from os import walk
 
 import yaml
 from pint import PintError
@@ -90,7 +90,8 @@ class EquipmentSpec:
 
         Returns a list of cable lengths and the cross-sectional area of the cable.
 
-        We take ini the extra_length variable here and use it to add extra cable - so extra lengths will show up as extra "spare" in the power plan.
+        We take ini the extra_length variable here and use it to add extra cable,
+        so extra lengths will show up as extra "spare" in the power plan.
 
         """
         key = (connector, rating, phases)
