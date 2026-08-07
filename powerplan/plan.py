@@ -311,6 +311,7 @@ class Plan:
                 node.z_s(upstream),
                 data["current"],
                 data["phases"],
+                source.geom
             )
             logical_sink = LogicalSink(
                 f"{node.name} {source.name}",
