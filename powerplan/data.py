@@ -307,7 +307,7 @@ class LogicalSource(PowerSource):
     position in the upstream grid.
     """
 
-    def __init__(self, name, voltage, v_drop, z_s, current, phases, geom=None):
+    def __init__(self, name, voltage, v_drop, z_s, current, phases, geom):
         self.name = name
         self.id = None
         self.type = "Link"

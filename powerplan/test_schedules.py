@@ -24,7 +24,8 @@ def generate_schedule(plan: Plan):
         longest = None
 
         for a, b, data in grid.edges():
-            three_phase_output = False
+            # print(f"Grid {grid.name} Found node {b} with source {a} and data {data}")
+            # three_phase_output = False
             if not longest:
                 longest = {
                     "source": a,
@@ -42,41 +43,51 @@ def generate_schedule(plan: Plan):
                     }
 
                 # Check if there are any used 3ph outputs
-                if c_data["phases"] == 3:
-                    three_phase_output = True
+                # if c_data["phases"] == 3:
+                #     three_phase_output = True
 
-            # Test the end of each three phase run
-            if data["phases"] == 3 and not three_phase_output:
-                tests[grid.name][b.name] = {
-                    "source": a,
-                    "node": b,
-                    "data": data,
-                }
+            # if three_phase_output:
+            #     print(f"\tHas three phase output")
 
-            # Test a circuit from the longest submain of each grid
-            if b.cable_length_from_source() > longest["node"].cable_length_from_source():
-                longest = {
-                    "source": a,
-                    "node": b,
-                    "data": data,
-                }
+            tests[grid.name][b.name] = {
+                "source": a,
+                "node": b,
+                "data": data,
+            }
 
-            # Test control position supply from each powercube
-            if b.get_spec()["ref"] == "Powercube":
-                # FIXME: Better selection of output and add RCD to powercube spec
-                name = b.name + "-pc"
-                output = b.get_spec()["outputs"][0]
-                output["rcd"] = "30mA"
-                tests[grid.name][name] = {
-                    "description": "Control position power from " + b.name,
-                    "source": b,
-                    "data": output,
-                    "final": True,
-                }
+        #     # Test the end of each three phase run
+        #     if data["phases"] == 3 and not three_phase_output:
+        #         print(f"\tAdding three phase test for {b.name}")
+        #         tests[grid.name][b.name] = {
+        #             "source": a,
+        #             "node": b,
+        #             "data": data,
+        #         }
 
-        # Test the distro further from the source
-        if longest:
-            tests[grid.name][longest["node"].name] = longest
+        #     # Test a circuit from the longest submain of each grid
+        #     if b.cable_length_from_source() > longest["node"].cable_length_from_source():
+        #         longest = {
+        #             "source": a,
+        #             "node": b,
+        #             "data": data,
+        #         }
+
+        #     # Test control position supply from each powercube
+        #     if b.get_spec()["ref"] == "Powercube":
+        #         # FIXME: Better selection of output and add RCD to powercube spec
+        #         name = b.name + "-pc"
+        #         output = b.get_spec()["outputs"][0]
+        #         output["rcd"] = "30mA"
+        #         tests[grid.name][name] = {
+        #             "description": "Control position power from " + b.name,
+        #             "source": b,
+        #             "data": output,
+        #             "final": True,
+        #         }
+
+        # # Test the distro further from the source
+        # if longest:
+        #     tests[grid.name][longest["node"].name] = longest
 
         # Sort alphabetically by key
         tests[grid.name] = sorted(tests[grid.name].items())
